@@ -1,0 +1,74 @@
+# Core Data & ML
+numpy>=1.24.0
+pandas>=2.0.0
+scipy>=1.10.0
+scikit-learn>=1.3.0
+
+# Time Series Forecasting
+statsmodels>=0.14.0
+pmdarima>=2.0.3
+pystan>=2.19.1.1  # For Prophet
+cmdstanpy>=1.2.0  # Modern Prophet backend (recommended)
+prophet>=1.1.5
+
+# Technical Analysis
+ta-lib>=0.4.27  # Or use ta package as alternative
+# Alternative: ta>=0.11.0
+
+# Finance & Market Data
+yfinance>=0.2.30
+pandas-datareader>=0.10.0
+requests>=2.31.0
+
+# LLM & Agentic Systems
+langchain>=0.1.0
+langchain-anthropic>=0.1.0
+langgraph>=0.0.40
+anthropic>=0.18.0
+
+# API & Web Framework
+fastapi>=0.104.0
+uvicorn>=0.24.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Explainability
+shap>=0.43.0
+matplotlib>=3.7.0
+seaborn>=0.13.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-asyncio>=0.21.0
+httpx>=0.25.0  # For testing async APIs
+
+# Development
+black>=23.9.0
+flake8>=6.1.0
+mypy>=1.5.0
+isort>=5.12.0
+pre-commit>=3.3.0
+
+# Notebooks & Visualization
+jupyter>=1.0.0
+jupyterlab>=4.0.0
+ipykernel>=6.26.0
+plotly>=5.17.0
+plotly-express>=5.17.0
+
+# Utilities
+python-dotenv>=1.0.0
+tqdm>=4.66.0
+loguru>=0.7.0
+
+# Containerization (optional)
+docker>=6.1.0
+
+# Caching & Storage (optional)
+redis>=5.0.0
+psycopg2-binary>=2.9.0  # PostgreSQL driver for vector DB
+
+# Version
+setuptools>=68.0.0
+wheel>=0.41.0
