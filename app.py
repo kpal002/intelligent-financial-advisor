@@ -525,6 +525,7 @@ with gr.Blocks(
     css=CSS,
     theme=gr.themes.Base(),
     title="Finley — Financial Advisor",
+    analytics_enabled=False,
 ) as demo:
 
     # ── Fixed sidebar overlay — rendered at DOM root, styled with inline CSS ──
@@ -564,4 +565,4 @@ with gr.Blocks(
 
 # ══════════════════════════════════════════════════════════════════════════════
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860, share=False)
+    demo.launch(server_name="0.0.0.0", server_port=7860, share=False, show_api=False)
