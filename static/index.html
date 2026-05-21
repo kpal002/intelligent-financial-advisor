@@ -423,6 +423,7 @@
   // ── State ──────────────────────────────────────────────────
   let analysesCount = 0;
   let busy = false;
+  let conversationHistory = [];   // [{role, content}, ...]
 
   // ── Status badge ───────────────────────────────────────────
   async function loadStatus() {
@@ -539,11 +540,15 @@
       const res = await fetch('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, symbols, weights }),
+        body: JSON.stringify({ message, symbols, weights, history: conversationHistory }),
       });
 
       if (!res.ok) throw new Error(`Server error ${res.status}`);
       const { response } = await res.json();
+
+      // Accumulate history for multi-turn memory
+      conversationHistory.push({ role: 'user', content: message });
+      conversationHistory.push({ role: 'assistant', content: response });
 
       removeTyping();
       appendMessage('bot', marked.parse(response));
