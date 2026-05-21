@@ -58,6 +58,7 @@ plotly>=5.17.0          # plotly-express is bundled inside plotly since v5; no s
 
 # Utilities
 python-dotenv>=1.0.0
+typing-extensions>=4.0.0  # Annotated back-compat for Python < 3.9
 tqdm>=4.66.0
 loguru>=0.7.0
 

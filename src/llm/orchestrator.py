@@ -22,7 +22,8 @@ import logging
 import operator
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+from typing_extensions import Annotated  # Annotated added to typing in 3.9; use compat shim
 
 from dotenv import load_dotenv
 

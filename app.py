@@ -5,6 +5,7 @@ Gradio frontend for Hugging Face Spaces
 Layout and visual design inspired by Kay Mathematics Tutor.
 Two-panel layout: dark sidebar + warm-cream main content area.
 """
+from __future__ import annotations  # list[str]/dict[k,v] type hints on Python < 3.10
 
 import gradio as gr
 

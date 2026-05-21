@@ -283,11 +283,9 @@ class TestFinancialAdvisorGraph:
         """
         advisor, _ = _make_advisor_with_mock_llm("advice")
 
-        with (
-            patch("src.llm.orchestrator.fetch_market_data")             as mm,
-            patch("src.llm.orchestrator.calculate_risk_metrics")        as rm,
-            patch("src.llm.orchestrator.score_investment_opportunities") as rec,
-        ):
+        with patch("src.llm.orchestrator.fetch_market_data") as mm, \
+             patch("src.llm.orchestrator.calculate_risk_metrics") as rm, \
+             patch("src.llm.orchestrator.score_investment_opportunities") as rec:
             mm.invoke.return_value  = MOCK_MARKET_DATA
             rm.invoke.return_value  = MOCK_RISK_METRICS
             rec.invoke.return_value = MOCK_RECOMMENDATIONS
@@ -310,11 +308,9 @@ class TestFinancialAdvisorGraph:
     def test_final_advice_comes_from_llm(self):
         advisor, _ = _make_advisor_with_mock_llm("Mocked Claude advice")
 
-        with (
-            patch("src.llm.orchestrator.fetch_market_data")             as mm,
-            patch("src.llm.orchestrator.calculate_risk_metrics")        as rm,
-            patch("src.llm.orchestrator.score_investment_opportunities") as rec,
-        ):
+        with patch("src.llm.orchestrator.fetch_market_data") as mm, \
+             patch("src.llm.orchestrator.calculate_risk_metrics") as rm, \
+             patch("src.llm.orchestrator.score_investment_opportunities") as rec:
             mm.invoke.return_value  = MOCK_MARKET_DATA
             rm.invoke.return_value  = MOCK_RISK_METRICS
             rec.invoke.return_value = MOCK_RECOMMENDATIONS
@@ -326,11 +322,9 @@ class TestFinancialAdvisorGraph:
     def test_output_contains_all_expected_keys(self):
         advisor, _ = _make_advisor_with_mock_llm()
 
-        with (
-            patch("src.llm.orchestrator.fetch_market_data")             as mm,
-            patch("src.llm.orchestrator.calculate_risk_metrics")        as rm,
-            patch("src.llm.orchestrator.score_investment_opportunities") as rec,
-        ):
+        with patch("src.llm.orchestrator.fetch_market_data") as mm, \
+             patch("src.llm.orchestrator.calculate_risk_metrics") as rm, \
+             patch("src.llm.orchestrator.score_investment_opportunities") as rec:
             mm.invoke.return_value  = MOCK_MARKET_DATA
             rm.invoke.return_value  = MOCK_RISK_METRICS
             rec.invoke.return_value = MOCK_RECOMMENDATIONS

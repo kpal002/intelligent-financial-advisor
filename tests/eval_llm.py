@@ -34,6 +34,8 @@ Usage
     python -m tests.eval_llm --live --symbols AAPL MSFT --judge
 """
 
+from __future__ import annotations  # dict[str,Any]/list[str] type hints on Python < 3.10
+
 import argparse
 import json
 import re
