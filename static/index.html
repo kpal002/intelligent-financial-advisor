@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finley — Financial Advisor</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    /* ── Reset ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f0ea; color: #1c1c1c;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────── */
+    #layout { display: flex; height: 100vh; }
+
+    /* ── Sidebar ─────────────────────────────────────────────── */
+    #sidebar {
+      width: 260px; flex-shrink: 0;
+      background: #241410; border-right: 1px solid #3a1f12;
+      display: flex; flex-direction: column;
+      overflow-y: auto;
+    }
+    .sb-logo {
+      padding: 28px 20px 18px; border-bottom: 1px solid #3a1f12;
+    }
+    .sb-logo-name {
+      font-size: 1.5rem; font-weight: 700; color: #f0e8e0;
+      letter-spacing: -0.02em; font-family: Georgia, serif;
+    }
+    .sb-logo-sub {
+      font-size: 0.65rem; color: #7a5c4e; letter-spacing: 0.14em;
+      text-transform: uppercase; margin-top: 3px;
+    }
+    .sb-label {
+      font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: #6a4a3a; padding: 20px 20px 6px;
+    }
+    .sb-label + .sb-label { padding-top: 8px; }
+    .sb-muted {
+      font-size: 0.78rem; color: #6a4a3a; padding: 2px 20px 16px; line-height: 1.5;
+    }
+    .sb-card {
+      margin: 0 16px 12px; background: #2e1a0e; border-radius: 8px;
+      padding: 14px; border: 1px solid #3a1f12;
+    }
+    .sb-card-label {
+      font-size: 0.65rem; color: #7a5c4e; text-transform: uppercase;
+      letter-spacing: 0.1em; margin-bottom: 6px;
+    }
+    .sb-card-value { font-size: 0.82rem; color: #a07060; }
+    .sb-live {
+      font-size: 0.82rem; color: #9bc49b;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .sb-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #4caf50; display: inline-block; flex-shrink: 0;
+    }
+    .sb-activity {
+      padding: 0 20px 8px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .sb-activity-row {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.78rem; color: #6a4a3a;
+    }
+    .sb-activity-val { color: #e0d4ca; font-weight: 600; }
+    .sb-spacer { flex: 1; }
+    .sb-privacy {
+      padding: 14px 20px 10px; border-top: 1px solid #3a1f12;
+      font-size: 0.7rem; color: #5a3a2a; line-height: 1.55;
+    }
+    .sb-gh {
+      margin: 0 16px 14px;
+      border: 1px solid #3a1f12; border-radius: 7px; color: #7a5c4e;
+      padding: 9px 14px; font-size: 0.78rem; cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .sb-gh:hover { border-color: #7a5c4e; color: #a07060; }
+    .sb-copy {
+      text-align: center; font-size: 0.65rem; color: #4a2a1a; padding: 0 0 14px;
+    }
+
+    /* ── Main area ───────────────────────────────────────────── */
+    #main {
+      flex: 1; display: flex; flex-direction: column;
+      overflow: hidden; background: #f5f0ea;
+    }
+
+    /* ── Welcome screen ──────────────────────────────────────── */
+    #welcome {
+      padding: 48px 32px 28px;
+      display: flex; flex-direction: column; align-items: center;
+      flex-shrink: 0;
+    }
+    #welcome.hidden { display: none; }
+    .w-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      border-radius: 20px; padding: 4px 14px;
+      font-size: 0.72rem; margin-bottom: 28px;
+    }
+    .w-badge-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+    .w-h1 {
+      font-size: 2.5rem; font-weight: 700; color: #1c1c1c;
+      font-family: Georgia, serif; letter-spacing: -0.02em;
+      text-align: center; margin-bottom: 10px;
+    }
+    .w-sub {
+      font-size: 1rem; color: #666; line-height: 1.7;
+      text-align: center; margin-bottom: 32px; max-width: 460px;
+    }
+    .w-cards {
+      display: flex; gap: 14px; max-width: 720px; width: 100%; flex-wrap: wrap;
+    }
+    .w-card {
+      flex: 1; min-width: 180px; background: white;
+      border: 1.5px solid #e8ddd4; border-radius: 12px;
+      padding: 22px 18px; cursor: pointer;
+      transition: border-color 0.2s, transform 0.2s;
+      position: relative;
+    }
+    .w-card:hover { border-color: #c4622d; transform: translateY(-2px); }
+    .w-card.active-border { border-color: #c4622d; }
+    .w-card.disabled { opacity: 0.45; pointer-events: none; }
+    .w-card-badge {
+      position: absolute; top: -10px; right: 14px;
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.07em;
+      padding: 3px 8px; border-radius: 4px; color: white;
+    }
+    .w-card-icon { font-size: 1.4rem; display: block; margin-bottom: 10px; }
+    .w-card-title { font-size: 0.94rem; font-weight: 600; color: #1c1c1c; margin-bottom: 6px; }
+    .w-card-desc { font-size: 0.81rem; color: #666; line-height: 1.5; }
+    .w-hint { font-size: 0.82rem; color: #bbb; margin-top: 20px; }
+
+    /* ── Messages ────────────────────────────────────────────── */
+    #messages {
+      flex: 1; overflow-y: auto; padding: 20px 56px;
+      display: flex; flex-direction: column; gap: 18px;
+    }
+    .msg { max-width: 100%; }
+    .msg-user {
+      align-self: flex-end; background: #c4622d; color: white;
+      border-radius: 18px; padding: 10px 16px; max-width: 75%;
+      font-size: 0.95rem; line-height: 1.5;
+    }
+    .msg-bot { align-self: flex-start; }
+    .msg-bot-inner {
+      font-size: 0.95rem; line-height: 1.7; color: #1c1c1c;
+    }
+    .msg-bot-inner h1, .msg-bot-inner h2 {
+      font-family: Georgia, serif; margin: 16px 0 8px;
+      color: #1c1c1c; font-weight: 700;
+    }
+    .msg-bot-inner h2 { font-size: 1.1rem; }
+    .msg-bot-inner h3 { font-size: 1rem; font-weight: 600; margin: 12px 0 6px; }
+    .msg-bot-inner p { margin-bottom: 10px; }
+    .msg-bot-inner ul, .msg-bot-inner ol { padding-left: 20px; margin-bottom: 10px; }
+    .msg-bot-inner li { margin-bottom: 4px; }
+    .msg-bot-inner code {
+      background: #ede5dc; padding: 2px 6px; border-radius: 4px;
+      font-family: 'SF Mono', Menlo, monospace; font-size: 0.87em;
+    }
+    .msg-bot-inner pre code {
+      display: block; padding: 12px; border-radius: 8px; overflow-x: auto;
+    }
+    .msg-bot-inner blockquote {
+      border-left: 3px solid #c4622d; padding: 8px 16px;
+      background: rgba(196,98,45,0.06); border-radius: 0 6px 6px 0;
+      margin: 10px 0; color: #5a3a2a;
+    }
+    .msg-bot-inner table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.88rem; }
+    .msg-bot-inner th {
+      background: #ede5dc; color: #1c1c1c; padding: 8px 14px;
+      border: 1px solid #d4c4b4; font-weight: 600; text-align: left;
+    }
+    .msg-bot-inner td { padding: 7px 14px; border: 1px solid #d4c4b4; color: #1c1c1c; }
+    .msg-bot-inner tr:nth-child(even) td { background: rgba(196,98,45,0.04); }
+    .msg-bot-inner strong { font-weight: 600; }
+    .msg-bot-inner hr { border: none; border-top: 1px solid #e8ddd4; margin: 16px 0; }
+
+    /* Typing indicator */
+    .typing {
+      display: flex; gap: 5px; align-items: center; padding: 12px 0;
+    }
+    .typing span {
+      width: 8px; height: 8px; border-radius: 50%; background: #c4622d;
+      animation: bounce 1.2s infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-6px); opacity: 1; }
+    }
+
+    /* ── Input area ──────────────────────────────────────────── */
+    #input-area {
+      flex-shrink: 0; background: white;
+      border-top: 1px solid #e8ddd4;
+    }
+
+    /* Portfolio settings accordion */
+    #settings-toggle {
+      width: 100%; background: none; border: none; border-bottom: 1px solid #e8ddd4;
+      padding: 8px 20px; text-align: left; cursor: pointer;
+      font-size: 0.8rem; color: #7a5c4e; display: flex; align-items: center; gap: 6px;
+      transition: background 0.15s;
+    }
+    #settings-toggle:hover { background: #faf6f2; }
+    #settings-toggle .arrow { transition: transform 0.2s; font-style: normal; }
+    #settings-toggle.open .arrow { transform: rotate(180deg); }
+    #settings-panel {
+      display: none; padding: 12px 20px 8px;
+      background: #faf6f2; border-bottom: 1px solid #e8ddd4;
+      gap: 10px; flex-wrap: wrap;
+    }
+    #settings-panel.open { display: flex; }
+    .setting-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px; }
+    .setting-field label { font-size: 0.75rem; color: #7a5c4e; font-weight: 500; }
+    .setting-field input {
+      background: white; border: 1px solid #ddd5c8; border-radius: 6px;
+      padding: 7px 10px; font-size: 0.88rem; color: #1c1c1c;
+      outline: none; transition: border-color 0.15s;
+      font-family: inherit;
+    }
+    .setting-field input:focus { border-color: #c4622d; box-shadow: 0 0 0 3px rgba(196,98,45,0.08); }
+
+    /* Text input row */
+    #input-row {
+      display: flex; align-items: flex-end; gap: 10px;
+      padding: 12px 16px;
+    }
+    #user-input {
+      flex: 1; border: 1.5px solid #e8ddd4; border-radius: 10px;
+      padding: 10px 14px; font-size: 0.92rem; color: #1c1c1c;
+      background: #fdfaf7; resize: none; outline: none;
+      font-family: inherit; line-height: 1.5;
+      max-height: 160px; overflow-y: auto;
+      transition: border-color 0.15s;
+    }
+    #user-input:focus { border-color: #c4622d; box-shadow: 0 0 0 3px rgba(196,98,45,0.08); }
+    #user-input::placeholder { color: #aaa; }
+    #send-btn {
+      background: #c4622d; color: white; border: none;
+      border-radius: 8px; padding: 10px 18px; cursor: pointer;
+      font-size: 0.92rem; font-weight: 600; flex-shrink: 0;
+      transition: background 0.15s;
+      font-family: inherit;
+    }
+    #send-btn:hover:not(:disabled) { background: #a8521f; }
+    #send-btn:disabled { background: #e0ccc0; cursor: not-allowed; }
+
+    /* ── Quick examples ──────────────────────────────────────── */
+    #examples {
+      display: flex; gap: 8px; padding: 0 16px 10px;
+      flex-wrap: wrap;
+    }
+    .ex-btn {
+      background: #e8e1d8; border: none; border-radius: 20px;
+      color: #3a2820; font-size: 0.82rem; padding: 7px 14px;
+      cursor: pointer; white-space: nowrap; font-family: inherit;
+      transition: background 0.15s, color 0.15s;
+    }
+    .ex-btn:hover { background: #ddd5ca; color: #c4622d; }
+
+    /* ── Scrollbar ───────────────────────────────────────────── */
+    #messages::-webkit-scrollbar { width: 6px; }
+    #messages::-webkit-scrollbar-track { background: transparent; }
+    #messages::-webkit-scrollbar-thumb { background: #ddd5c8; border-radius: 3px; }
+  </style>
+</head>
+<body>
+<div id="layout">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────── -->
+  <nav id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-name">Finley.</div>
+      <div class="sb-logo-sub">Financial Advisor</div>
+    </div>
+
+    <div class="sb-label">Recent Analyses</div>
+    <div class="sb-muted">Complete an analysis to see your history here.</div>
+
+    <div class="sb-label">Portfolio Health</div>
+    <div class="sb-card">
+      <div class="sb-card-label">Last Analyzed</div>
+      <div class="sb-card-value" id="last-analyzed">—</div>
+    </div>
+
+    <div class="sb-label">Market Data</div>
+    <div class="sb-card">
+      <div class="sb-card-label">Source</div>
+      <div class="sb-live">
+        <span class="sb-dot"></span> Yahoo Finance (live)
+      </div>
+    </div>
+
+    <div class="sb-label">Activity</div>
+    <div class="sb-activity">
+      <div class="sb-activity-row">
+        <span>💬</span>
+        <span class="sb-activity-val" id="analyses-count">0</span>
+        <span>analyses run</span>
+      </div>
+      <div class="sb-activity-row">
+        <span>📊</span>
+        <span class="sb-activity-val" id="portfolios-count">0</span>
+        <span>portfolios evaluated</span>
+      </div>
+    </div>
+
+    <div class="sb-spacer"></div>
+
+    <div class="sb-privacy">
+      🔒 Progress is saved privately on this device. Finley never collects or stores your identity.
+    </div>
+    <a class="sb-gh" href="https://github.com/kpal002/intelligent-financial-advisor" target="_blank">
+      ⭐ &nbsp;View on GitHub
+    </a>
+    <div class="sb-copy">© 2025 Kuntal Pal</div>
+  </nav>
+
+  <!-- ── Main ─────────────────────────────────────────────────── -->
+  <main id="main">
+
+    <!-- Welcome screen -->
+    <section id="welcome">
+      <div class="w-badge" id="status-badge">
+        <span class="w-badge-dot" id="status-dot"></span>
+        <span id="status-text">Connecting…</span>
+      </div>
+
+      <h1 class="w-h1">Hello, I'm Finley.</h1>
+      <p class="w-sub">
+        Today is a great day to review your portfolio!<br>Where shall we begin?
+      </p>
+
+      <div class="w-cards">
+        <div class="w-card active-border"
+             onclick="fillInput('Analyze my portfolio and give me a full investment recommendation.')">
+          <span class="w-card-icon">📊</span>
+          <div class="w-card-title">Analyze my portfolio</div>
+          <p class="w-card-desc">Full ARIMA, Markowitz &amp; VaR analysis with Claude's synthesis.</p>
+        </div>
+
+        <div class="w-card"
+             onclick="fillInput('Can you explain what Sharpe ratio means and whether mine is good?')">
+          <span class="w-card-badge" style="background:#c4622d;">BETA</span>
+          <span class="w-card-icon">💬</span>
+          <div class="w-card-title">Ask a finance question</div>
+          <p class="w-card-desc">Drill into any concept with fresh explanations and examples.</p>
+        </div>
+
+        <div class="w-card disabled">
+          <span class="w-card-badge" style="background:#aaa;">COMING SOON</span>
+          <span class="w-card-icon">⚡</span>
+          <div class="w-card-title">Stress test my portfolio</div>
+          <p class="w-card-desc">Rate hike, crash, inflation — see how your allocation holds up.</p>
+        </div>
+      </div>
+
+      <p class="w-hint">or use the quick prompts below ↓</p>
+    </section>
+
+    <!-- Messages -->
+    <div id="messages"></div>
+
+    <!-- Input area -->
+    <div id="input-area">
+      <button id="settings-toggle" onclick="toggleSettings()">
+        <span>⚙️</span> Portfolio Settings
+        <span class="arrow">▾</span>
+      </button>
+      <div id="settings-panel">
+        <div class="setting-field">
+          <label for="symbols-input">Portfolio Symbols (comma-separated)</label>
+          <input id="symbols-input" type="text" value="AAPL, MSFT"
+                 placeholder="AAPL, MSFT, JPM, JNJ" />
+        </div>
+        <div class="setting-field">
+          <label for="weights-input">Weights % (leave blank for equal weight)</label>
+          <input id="weights-input" type="text" placeholder="60, 40  ← or leave blank" />
+        </div>
+      </div>
+
+      <div id="examples">
+        <button class="ex-btn" onclick="fillInput('Should I rebalance given recent Fed rate hikes?')">
+          Rebalancing advice
+        </button>
+        <button class="ex-btn" onclick="fillInput('What does my Sharpe ratio tell me?')">
+          Explain Sharpe ratio
+        </button>
+        <button class="ex-btn" onclick="fillInput('I need to reduce portfolio risk — where should I start?')">
+          Risk reduction
+        </button>
+        <button class="ex-btn" onclick="fillInput('How does Isolation Forest detect anomalies in my portfolio?')">
+          Anomaly detection
+        </button>
+      </div>
+
+      <div id="input-row">
+        <textarea id="user-input" rows="1"
+                  placeholder="Ask Finley anything about your portfolio…"
+                  onkeydown="handleKey(event)"
+                  oninput="autoResize(this)"></textarea>
+        <button id="send-btn" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // ── Marked config ──────────────────────────────────────────
+  marked.setOptions({ breaks: true, gfm: true });
+
+  // ── State ──────────────────────────────────────────────────
+  let analysesCount = 0;
+  let busy = false;
+
+  // ── Status badge ───────────────────────────────────────────
+  async function loadStatus() {
+    try {
+      const r = await fetch('/status');
+      const { live } = await r.json();
+      const dot  = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      const badge = document.getElementById('status-badge');
+      if (live) {
+        dot.style.background = '#4caf50';
+        badge.style.background = '#1e3a1e';
+        badge.style.border = '1px solid #2d5a2d';
+        badge.style.color = '#7ec87e';
+        text.textContent = 'Ready to analyze';
+      } else {
+        dot.style.background = '#c49a4a';
+        badge.style.background = '#3a2a1a';
+        badge.style.border = '1px solid #5a3a1a';
+        badge.style.color = '#c49a4a';
+        text.textContent = 'Demo mode — add ANTHROPIC_API_KEY';
+      }
+    } catch {
+      document.getElementById('status-text').textContent = 'Offline';
+    }
+  }
+  loadStatus();
+
+  // ── Settings accordion ─────────────────────────────────────
+  function toggleSettings() {
+    const toggle = document.getElementById('settings-toggle');
+    const panel  = document.getElementById('settings-panel');
+    toggle.classList.toggle('open');
+    panel.classList.toggle('open');
+  }
+
+  // ── Fill input from card / example ────────────────────────
+  function fillInput(text) {
+    const ta = document.getElementById('user-input');
+    ta.value = text;
+    autoResize(ta);
+    ta.focus();
+  }
+
+  // ── Auto-resize textarea ───────────────────────────────────
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+  }
+
+  // ── Enter to send (Shift+Enter = newline) ──────────────────
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  // ── Hide welcome once first message sent ───────────────────
+  function hideWelcome() {
+    document.getElementById('welcome').classList.add('hidden');
+  }
+
+  // ── Append a message bubble ────────────────────────────────
+  function appendMessage(role, html) {
+    const msgs = document.getElementById('messages');
+    const div  = document.createElement('div');
+    div.className = `msg msg-${role}`;
+    if (role === 'user') {
+      div.innerHTML = `<div class="msg-user">${escapeHtml(html)}</div>`;
+    } else {
+      div.innerHTML = `<div class="msg-bot-inner">${html}</div>`;
+    }
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
+
+  // ── Typing indicator ───────────────────────────────────────
+  function showTyping() {
+    const msgs = document.getElementById('messages');
+    const div  = document.createElement('div');
+    div.id = 'typing-indicator';
+    div.className = 'msg msg-bot';
+    div.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  function removeTyping() {
+    const el = document.getElementById('typing-indicator');
+    if (el) el.remove();
+  }
+
+  // ── Main send function ─────────────────────────────────────
+  async function sendMessage() {
+    if (busy) return;
+    const ta      = document.getElementById('user-input');
+    const message = ta.value.trim();
+    if (!message) return;
+
+    const symbols = document.getElementById('symbols-input').value;
+    const weights = document.getElementById('weights-input').value;
+
+    // UI updates
+    hideWelcome();
+    ta.value = '';
+    ta.style.height = 'auto';
+    appendMessage('user', message);
+    showTyping();
+    busy = true;
+    document.getElementById('send-btn').disabled = true;
+
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, symbols, weights }),
+      });
+
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
+      const { response } = await res.json();
+
+      removeTyping();
+      appendMessage('bot', marked.parse(response));
+
+      // Update sidebar stats
+      analysesCount++;
+      document.getElementById('analyses-count').textContent = analysesCount;
+      document.getElementById('portfolios-count').textContent = analysesCount;
+      document.getElementById('last-analyzed').textContent =
+        new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    } catch (err) {
+      removeTyping();
+      appendMessage('bot', marked.parse(`⚠️ **Error:** ${err.message}`));
+    } finally {
+      busy = false;
+      document.getElementById('send-btn').disabled = false;
+      document.getElementById('user-input').focus();
+    }
+  }
+
+  // ── HTML escape for user messages ─────────────────────────
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+</script>
+</body>
+</html>

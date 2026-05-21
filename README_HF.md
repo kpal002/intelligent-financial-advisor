@@ -3,9 +3,7 @@ title: Intelligent Financial Advisor
 emoji: 📈
 colorFrom: red
 colorTo: yellow
-sdk: gradio
-sdk_version: "5.29.0"
-app_file: app.py
+sdk: docker
 pinned: false
 license: mit
 ---
@@ -20,11 +18,11 @@ A production-grade multi-agent financial advisor powered by:
 - **Markowitz** portfolio optimisation (max-Sharpe)
 - **VaR / CVaR / Sharpe / Sortino** risk metrics
 - **Isolation Forest** anomaly detection → buy/hold/sell signals
-- **FastAPI** REST backend + **Gradio** frontend
+- **FastAPI** REST backend + vanilla HTML/CSS/JS frontend
 
 ## How to use
 
-1. Enter your portfolio symbols (e.g. `AAPL, MSFT, JPM`) in the sidebar
+1. Enter your portfolio symbols (e.g. `AAPL, MSFT, JPM`) in the Portfolio Settings panel
 2. Optionally set weights (e.g. `40, 35, 25`) — blank = equal weight
 3. Click a mode card, use a quick prompt, or type your own question
 4. Finley runs the full 5-agent pipeline and returns a structured advisory report
@@ -34,9 +32,9 @@ A production-grade multi-agent financial advisor powered by:
 ```bash
 git clone https://github.com/kpal002/intelligent-financial-advisor
 cd intelligent-financial-advisor
-pip install -r requirements.txt
+pip install -r requirements.txt uvicorn
 echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
-python app.py
+uvicorn main:app --reload
 ```
 
 ## Environment secrets
