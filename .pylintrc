@@ -1,0 +1,87 @@
+[MASTER]
+# Run with multiple processes for speed
+jobs=1
+
+# Ignore virtualenvs and generated files
+ignore=.git,__pycache__,.venv,venv,node_modules,migrations
+
+[MESSAGES CONTROL]
+# Disabled checks explained:
+#
+# E0401 (import-error)
+#   Pylint resolves imports at lint time, before packages are installed.
+#   CI installs everything via requirements.txt before running pylint, so
+#   these are false positives in an environment without the packages.
+#   Real import errors are caught by pytest's collection phase.
+#
+# R0903 (too-few-public-methods)
+#   Pydantic BaseModel and LangGraph TypedDict subclasses intentionally have
+#   few or no methods — they are data-holding schemas, not service classes.
+#
+# C0116 (missing-function-docstring)
+#   Short, self-evident helper functions and pytest test methods don't need
+#   prose docstrings; the function name + type hints are sufficient.
+#
+# W1203 (logging-fstring-interpolation)
+#   f-strings in logging calls are fine when log level is already checked
+#   or when startup/shutdown performance is not a concern.
+#
+# W0603 (global-statement)
+#   Used for module-level singleton caching (e.g. _advisor_singleton).
+#   Acceptable pattern for lazy-initialised Gradio / FastAPI apps.
+#
+# C0415 (import-outside-toplevel)
+#   Conditional / deferred imports are intentional (optional heavy deps,
+#   test fixtures that guard against import errors).
+#
+# R0914 (too-many-locals)
+#   Complex numerical routines (ARIMA walk-forward, Kupiec test) legitimately
+#   need many intermediate variables; refactoring them would reduce clarity.
+#
+# C0411 / C0413 (wrong-import-order / wrong-import-position)
+#   Third-party imports after dotenv / sys.path manipulation are intentional
+#   (dotenv must be loaded before any package that reads env vars at import).
+
+disable=
+    E0401,
+    R0903,
+    C0116,
+    W1203,
+    W0603,
+    C0415,
+    R0914,
+    C0411,
+    C0413
+
+[FORMAT]
+# Match flake8 setting in CI
+max-line-length=127
+
+[DESIGN]
+# Relax defaults — financial data classes legitimately hold many fields
+max-args=10
+max-attributes=12
+max-bool-expr=6
+max-branches=15
+max-returns=8
+max-statements=60
+
+[BASIC]
+# Allow common single-letter and short names used in numerical code
+good-names=i,j,k,n,x,y,df,ax,mu,X,lr,fn,tp,fp,tn
+
+# Module-level non-UPPER constants that are acceptable
+const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__)|([a-z_][a-z0-9_]*))$
+
+[SIMILARITIES]
+# Minimum lines for duplicate-code detection (short boilerplate is fine)
+min-similarity-lines=8
+
+[TYPECHECK]
+# Suppress missing-member errors for common third-party dynamic attrs
+ignored-modules=numpy,pandas,scipy,sklearn,statsmodels,yfinance,langchain,langgraph,gradio,fastapi,pydantic
+ignored-classes=BaseModel,TypedDict
+
+[IMPORTS]
+# Allow dotenv / path setup before third-party imports
+allow-any-import-level=dotenv,pathlib,sys

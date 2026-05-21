@@ -18,14 +18,12 @@ execution_trace uses Annotated[list, operator.add] so parallel nodes can
 both append without one overwriting the other.
 """
 
-import json
 import logging
 import operator
-import os
 from datetime import datetime
+from pathlib import Path
 from typing import Annotated, Any, Dict, List, Optional, Tuple
 
-from pathlib import Path
 from dotenv import load_dotenv
 
 # Resolve .env relative to this file (src/llm/orchestrator.py → ../../.env)
@@ -34,7 +32,6 @@ _ENV_FILE = Path(__file__).resolve().parent.parent.parent / ".env"
 load_dotenv(dotenv_path=_ENV_FILE, override=True)  # override=True so .env wins over empty shell vars
 
 import numpy as np
-import pandas as pd
 from pydantic import BaseModel, Field
 from langchain_anthropic import ChatAnthropic
 

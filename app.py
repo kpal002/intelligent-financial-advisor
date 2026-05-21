@@ -6,10 +6,6 @@ Layout and visual design inspired by Kay Mathematics Tutor.
 Two-panel layout: dark sidebar + warm-cream main content area.
 """
 
-import os
-import json
-from datetime import datetime
-
 import gradio as gr
 
 # Gradio 5 uses type="messages" for dict-style chat; Gradio 6 removed the param.

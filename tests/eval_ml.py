@@ -37,7 +37,7 @@ import yfinance as yf
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.ml_pipeline import TimeSeriesForecaster, PortfolioRiskAnalyzer, PortfolioOptimizer
+from src.ml_pipeline import TimeSeriesForecaster, PortfolioOptimizer
 
 # Suppress noisy info logs from the ML pipeline during eval
 logging.basicConfig(level=logging.WARNING)
