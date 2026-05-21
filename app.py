@@ -2,16 +2,14 @@
 Finley — Intelligent Financial Advisor
 Gradio frontend for Hugging Face Spaces
 
-Layout and visual design inspired by Kay Mathematics Tutor.
-Two-panel layout: dark sidebar + warm-cream main content area.
+Clean rebuild: sidebar is a position:fixed HTML overlay; gr.ChatInterface
+handles all chat logic so we never fight Gradio's internal layout wrappers.
 """
-from __future__ import annotations  # list[str]/dict[k,v] type hints on Python < 3.10
+from __future__ import annotations  # list[str]/dict[k,v] hints on Python < 3.10
 
 import gradio as gr
 
-# Gradio 5 uses type="messages" for dict-style chat; Gradio 6 removed the param.
 _GRADIO_MAJOR = int(gr.__version__.split(".")[0])
-_CHATBOT_KWARGS = {"type": "messages"} if _GRADIO_MAJOR < 6 else {}
 
 # ── Advisor bootstrap ──────────────────────────────────────────────────────────
 try:
@@ -31,291 +29,220 @@ except Exception as _e:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  CSS  — Kay-inspired palette
+#  CSS  — minimal; sidebar is a fixed HTML overlay, not a Gradio column
 # ══════════════════════════════════════════════════════════════════════════════
 
 CSS = """
-/* ── Variables ─────────────────────────────────────────── */
-:root {
-    --cream:          #f5f0ea;
-    --sidebar:        #241410;
-    --sidebar-border: #3a1f12;
-    --accent:         #c4622d;
-    --accent-hover:   #a8521f;
-    --card-border:    #e8ddd4;
-    --text-dark:      #1c1c1c;
-    --font-serif:     Georgia, 'Times New Roman', serif;
-    --font-sans:      -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+/* ── Core reset ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; background: #f5f0ea; }
+footer, .footer, .svelte-footer { display: none !important; }
+
+/* ── Push Gradio content right of the 260px fixed sidebar ── */
+.gradio-container {
+    margin-left: 260px !important;
+    max-width: calc(100% - 260px) !important;
+    padding: 0 !important;
+    background: #f5f0ea !important;
 }
 
-/* ── Minimal page reset ─────────────────────────────────── */
-html, body { margin: 0; padding: 0; overflow: hidden; }
-.gradio-container { padding: 0 !important; max-width: 100% !important; }
-footer, .footer { display: none !important; }
+/* ── ChatInterface wrapper ───────────────────────────────── */
+.gradio-chatinterface { background: #f5f0ea !important; }
+.gradio-chatinterface > div { background: #f5f0ea !important; }
 
-/* ── SHELL: fixed to viewport — ignores all Gradio sizing ── */
-/* position:fixed means #app-row is anchored directly to the  */
-/* browser window regardless of what Gradio's wrappers do.    */
-#app-row {
-    position: fixed !important;
-    top: 0 !important; left: 0 !important;
-    right: 0 !important; bottom: 0 !important;
-    display: flex !important;
-    flex-direction: row !important;
-    overflow: hidden !important;
-    background: var(--cream) !important;
-}
-#app-row > .block, #app-row > div {
-    padding: 0 !important; margin: 0 !important; gap: 0 !important;
-}
-
-/* ── Sidebar ────────────────────────────────────────────── */
-#sidebar-col {
-    width: 250px !important; min-width: 250px !important; max-width: 250px !important;
-    flex-shrink: 0 !important;
-    height: 100% !important;
-    overflow-y: auto !important;
-    background: var(--sidebar) !important;
-    border-right: 1px solid var(--sidebar-border) !important;
-    padding: 0 !important; margin: 0 !important;
-    border-radius: 0 !important; box-shadow: none !important;
-}
-#sidebar-col > .block, #sidebar-col > div, #sidebar-col > .block > div {
-    background: transparent !important; border: none !important;
-    box-shadow: none !important; padding: 0 !important; margin: 0 !important;
-}
-
-/* ── Main column — relative so children can be absolute ─────── */
-#main-col {
-    flex: 1 !important; min-width: 0 !important;
-    height: 100% !important; position: relative !important;
-    overflow: hidden !important;
-    background: var(--cream) !important;
-    padding: 0 !important; margin: 0 !important;
-    border-radius: 0 !important; box-shadow: none !important;
-}
-/* Strip Gradio's inner wrappers — keep them visually transparent */
-#main-col > .block, #main-col > div, #main-col > .block > div {
-    background: transparent !important; border: none !important;
-    box-shadow: none !important; padding: 0 !important; margin: 0 !important;
-}
-
-/* ── Welcome screen — absolute, fills between status bar & input ── */
-/* Sized by coordinates, not by flex — immune to wrapper issues.     */
-#welcome-col {
-    position: absolute !important;
-    top: 44px !important; left: 0 !important;
-    right: 0 !important; bottom: 70px !important;
-    overflow-y: auto !important;
-    display: flex !important; flex-direction: column !important;
-    align-items: center !important;
-    padding: 0 0 16px !important;
-}
-#welcome-col > .block, #welcome-col > div, #welcome-col > .block > div {
-    background: transparent !important; border: none !important;
-    box-shadow: none !important; width: 100%;
-    padding: 0 !important; margin: 0 !important;
-}
-
-/* Quick-prompt buttons — beige pill */
-#welcome-col button {
-    background: #e8e1d8 !important;
-    border: none !important;
-    border-radius: 16px !important;
-    color: #3a2820 !important;
-    font-size: 0.9rem !important;
-    font-family: var(--font-sans) !important;
-    font-weight: 400 !important;
-    text-align: left !important;
-    padding: 18px 20px !important;
-    line-height: 1.5 !important;
-    white-space: normal !important;
-    min-height: 76px !important;
-    box-shadow: none !important;
-    transition: background 0.15s !important;
-    width: 100% !important;
-}
-#welcome-col button:hover {
-    background: #ddd5ca !important; color: var(--accent) !important;
-}
-
-/* ── Chat screen — same absolute footprint as welcome col ─────── */
-#chat-col {
-    position: absolute !important;
-    top: 44px !important; left: 0 !important;
-    right: 0 !important; bottom: 70px !important;
-    overflow: hidden !important;
-    display: flex !important; flex-direction: column !important;
-}
-#chat-col > .block, #chat-col > div, #chat-col > .block > div {
-    background: transparent !important; border: none !important;
-    box-shadow: none !important; padding: 0 !important;
-    flex: 1 !important; min-height: 0 !important;
-    display: flex !important; flex-direction: column !important;
-    overflow: hidden !important;
-}
+/* ── Chatbot display ─────────────────────────────────────── */
 #chatbot {
-    flex: 1 !important; min-height: 0 !important; overflow: hidden !important;
+    background: #f5f0ea !important;
+    border: none !important;
+    box-shadow: none !important;
 }
-#chatbot > div, #chatbot .wrap, #chatbot .bubble-wrap, #chatbot .scroll-hide {
-    height: 100% !important; overflow-y: auto !important;
+#chatbot .bubble-wrap,
+#chatbot .message-wrap,
+#chatbot .scroll-hide,
+#chatbot > div {
+    background: #f5f0ea !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+#chatbot .message-wrap { padding: 20px 56px !important; gap: 18px !important; }
+
+/* Bot bubble — blends with page background */
+#chatbot .bot,
+#chatbot [data-testid="bot"],
+#chatbot .message.bot,
+#chatbot .message.bot > div {
+    background: #f5f0ea !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
 }
 
-/* ── Input bar — pinned to bottom of #main-col ────────────────── */
-#input-bar {
-    position: absolute !important;
-    bottom: 0 !important; left: 0 !important; right: 0 !important;
-}
-
-/* Chatbot background — cream throughout */
-#chatbot, #chatbot > div, #chatbot .wrap,
-#chatbot .bubble-wrap, #chatbot .scroll-hide, #chatbot .message-wrap {
-    background: var(--cream) !important; border: none !important; box-shadow: none !important;
-}
-#chatbot .message-wrap, #chatbot .bubble-wrap { padding: 24px 56px !important; gap: 20px !important; }
-
-/* Bot bubble — blend with page */
-#chatbot .bot, #chatbot [data-testid="bot"],
-#chatbot .message.bot, #chatbot .message.bot > div {
-    background: var(--cream) !important; border: none !important;
-    border-radius: 0 !important; box-shadow: none !important;
-    color: #1c1c1c !important; padding: 0 !important;
-}
-
-/* All text — dark and readable */
-#chatbot *, #chatbot p, #chatbot li, #chatbot ol, #chatbot ul,
-#chatbot blockquote, #chatbot code, #chatbot pre,
-#chatbot strong, #chatbot em,
-#chatbot h1, #chatbot h2, #chatbot h3, #chatbot h4, #chatbot h5 {
+/* Force all chatbot text dark */
+#chatbot *,
+#chatbot p, #chatbot li, #chatbot ul, #chatbot ol,
+#chatbot h1, #chatbot h2, #chatbot h3, #chatbot h4,
+#chatbot strong, #chatbot em, #chatbot code, #chatbot blockquote {
     color: #1c1c1c !important;
 }
 
-/* Tables */
-#chatbot table { border-collapse: collapse !important; width: auto !important; margin: 12px 0 !important; font-family: var(--font-sans) !important; font-size: 0.88rem !important; }
-#chatbot th { background: #ede5dc !important; color: #1c1c1c !important; font-weight: 600 !important; padding: 8px 14px !important; border: 1px solid #d4c4b4 !important; text-align: left !important; }
-#chatbot td { background: transparent !important; color: #1c1c1c !important; padding: 7px 14px !important; border: 1px solid #d4c4b4 !important; }
+/* User bubble — terracotta pill */
+#chatbot .user,
+#chatbot [data-testid="user"],
+#chatbot .message.user,
+#chatbot .message.user > div {
+    background: #c4622d !important;
+    color: white !important;
+    border-radius: 18px !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 10px 16px !important;
+    max-width: 75% !important;
+    margin-left: auto !important;
+}
+#chatbot .message.user p,
+#chatbot .message.user span,
+#chatbot .message.user * { color: white !important; }
+
+/* Tables in bot responses */
+#chatbot table { border-collapse: collapse !important; font-size: 0.88rem !important; margin: 10px 0 !important; }
+#chatbot th { background: #ede5dc !important; color: #1c1c1c !important; padding: 8px 14px !important; border: 1px solid #d4c4b4 !important; font-weight: 600 !important; text-align: left !important; }
+#chatbot td { color: #1c1c1c !important; padding: 7px 14px !important; border: 1px solid #d4c4b4 !important; }
 #chatbot tr:nth-child(even) td { background: rgba(196,98,45,0.04) !important; }
 
-/* User bubble — accent pill */
-#chatbot .user, #chatbot [data-testid="user"],
-#chatbot .message.user, #chatbot .message.user > div {
-    background: var(--accent) !important; color: white !important;
-    border-radius: 18px !important; border: none !important;
-    padding: 10px 16px !important; max-width: 75% !important; margin-left: auto !important;
-}
-#chatbot .message.user p, #chatbot .message.user span { color: white !important; }
-
-/* ── Input bar — styled; position is set in layout section above ── */
-#input-bar {
+/* ── Input row ────────────────────────────────────────────── */
+.chatbot-input,
+[data-testid="chatbot-input"],
+.gradio-chatinterface .input-row,
+.gradio-chatinterface > div > div:last-child {
     background: white !important;
-    border-top: 1px solid var(--card-border) !important;
-    padding: 12px 20px !important;
-    display: flex !important; align-items: center !important; gap: 10px !important;
-    z-index: 10 !important;
+    border-top: 1px solid #e8ddd4 !important;
+    padding: 10px 16px !important;
 }
-#input-bar > .block, #input-bar > div {
-    background: transparent !important; border: none !important;
-    box-shadow: none !important; padding: 0 !important;
+
+/* Textbox inside input row */
+.gradio-chatinterface textarea {
+    background: #fdfaf7 !important;
+    border: 1.5px solid #e8ddd4 !important;
+    border-radius: 10px !important;
+    color: #1c1c1c !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    font-size: 0.92rem !important;
+    padding: 10px 14px !important;
+    resize: none !important;
 }
-#msg-box textarea {
-    border: 1.5px solid var(--card-border) !important;
-    border-radius: 10px !important; background: #fdfaf7 !important;
-    color: var(--text-dark) !important; font-family: var(--font-sans) !important;
-    font-size: 0.92rem !important; padding: 12px 16px !important;
-    resize: none !important; min-height: 44px !important; max-height: 120px !important;
-}
-#msg-box textarea:focus {
-    border-color: var(--accent) !important; outline: none !important;
+.gradio-chatinterface textarea:focus {
+    border-color: #c4622d !important;
+    outline: none !important;
     box-shadow: 0 0 0 3px rgba(196,98,45,0.08) !important;
 }
-#send-btn {
-    background: var(--accent) !important; border: none !important;
-    border-radius: 10px !important; color: white !important;
-    font-size: 1.1rem !important; min-width: 44px !important;
-    height: 44px !important; padding: 0 !important; font-weight: 600 !important;
-}
-#send-btn:hover { background: var(--accent-hover) !important; }
 
-/* ── Portfolio sidebar inputs ─────────────────────────────── */
-#portfolio-section textarea, #portfolio-section input {
-    background: #2e1a0e !important; border: 1px solid #4a2a18 !important;
-    border-radius: 8px !important; color: #e0d4ca !important;
-    font-family: var(--font-sans) !important; font-size: 0.82rem !important;
+/* Submit button */
+.gradio-chatinterface button[aria-label="Submit"],
+.gradio-chatinterface .submit-btn {
+    background: #c4622d !important;
+    border: none !important;
+    border-radius: 8px !important;
+    color: white !important;
 }
-#portfolio-section textarea::placeholder,
-#portfolio-section input::placeholder { color: #7a5c4e !important; }
-#portfolio-section label span {
-    color: #9a7060 !important; font-family: var(--font-sans) !important;
-    font-size: 0.68rem !important; text-transform: uppercase !important; letter-spacing: 0.1em !important;
+.gradio-chatinterface button[aria-label="Submit"]:hover { background: #a8521f !important; }
+
+/* ── Examples (quick-prompt chips) ───────────────────────── */
+.gradio-chatinterface .examples-row { padding: 0 16px 10px !important; gap: 8px !important; }
+.gradio-chatinterface .examples-row button,
+.example-btn {
+    background: #e8e1d8 !important;
+    border: none !important;
+    border-radius: 20px !important;
+    color: #3a2820 !important;
+    font-size: 0.84rem !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    padding: 8px 16px !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
 }
-#portfolio-section .block, #portfolio-section > div {
-    background: transparent !important; border: none !important;
-    box-shadow: none !important; padding: 4px 16px !important;
+.gradio-chatinterface .examples-row button:hover { background: #ddd5ca !important; color: #c4622d !important; }
+
+/* ── Additional inputs (portfolio settings) ───────────────── */
+.gradio-chatinterface .additional-inputs,
+.gradio-chatinterface .additional-inputs-accordion {
+    background: #f5f0ea !important;
+    border: 1px solid #e8ddd4 !important;
+    border-radius: 8px !important;
+    margin: 0 16px 8px !important;
+}
+.gradio-chatinterface .additional-inputs input,
+.gradio-chatinterface .additional-inputs textarea {
+    background: white !important;
+    border: 1px solid #e8ddd4 !important;
+    border-radius: 6px !important;
+    color: #1c1c1c !important;
+    font-size: 0.88rem !important;
 }
 """
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  HTML FRAGMENTS
+#  SIDEBAR HTML  — position:fixed overlay, zero Gradio involvement
 # ══════════════════════════════════════════════════════════════════════════════
 
 SIDEBAR_HTML = """
 <div style="
-    background:#241410;
-    min-height:100vh;
-    display:flex;
-    flex-direction:column;
+    position:fixed; top:0; left:0; bottom:0; width:260px;
+    background:#241410; z-index:1000; overflow-y:auto;
+    display:flex; flex-direction:column;
     font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    border-right:1px solid #3a1f12;
 ">
 
-  <!-- Logo block -->
-  <div style="padding:28px 20px 18px; border-bottom:1px solid #3a1f12;">
-    <div style="font-size:1.5rem; font-weight:700; color:#f0e8e0; letter-spacing:-0.02em; font-family:Georgia,serif;">
+  <!-- Logo -->
+  <div style="padding:28px 20px 18px; border-bottom:1px solid #3a1f12; flex-shrink:0;">
+    <div style="font-size:1.5rem;font-weight:700;color:#f0e8e0;letter-spacing:-0.02em;font-family:Georgia,serif;">
       Finley.
     </div>
-    <div style="font-size:0.65rem; color:#7a5c4e; letter-spacing:0.14em; text-transform:uppercase; margin-top:3px;">
+    <div style="font-size:0.65rem;color:#7a5c4e;letter-spacing:0.14em;text-transform:uppercase;margin-top:3px;">
       Financial Advisor
     </div>
   </div>
 
-  <!-- Recent sessions label -->
-  <div style="font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#6a4a3a; padding:20px 20px 6px;">
+  <!-- Recent analyses -->
+  <div style="font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:#6a4a3a;padding:20px 20px 6px;">
     Recent Analyses
   </div>
-  <div style="font-size:0.78rem; color:#6a4a3a; padding:2px 20px 16px; line-height:1.5;">
+  <div style="font-size:0.78rem;color:#6a4a3a;padding:2px 20px 16px;line-height:1.5;">
     Complete an analysis to see your history here.
   </div>
 
-  <!-- Portfolio Health tracker -->
-  <div style="font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#6a4a3a; padding:8px 20px 8px;">
+  <!-- Portfolio Health -->
+  <div style="font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:#6a4a3a;padding:8px 20px 8px;">
     Portfolio Health
   </div>
-  <div style="margin:0 16px 12px; background:#2e1a0e; border-radius:8px; padding:14px; border:1px solid #3a1f12;">
-    <div style="font-size:0.65rem; color:#7a5c4e; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;">
+  <div style="margin:0 16px 12px;background:#2e1a0e;border-radius:8px;padding:14px;border:1px solid #3a1f12;">
+    <div style="font-size:0.65rem;color:#7a5c4e;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">
       Last Analyzed
     </div>
-    <div style="font-size:0.82rem; color:#a07060;">—</div>
+    <div style="font-size:0.82rem;color:#a07060;">—</div>
   </div>
 
-  <!-- Market snapshot -->
-  <div style="font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#6a4a3a; padding:8px 20px 8px;">
+  <!-- Market data -->
+  <div style="font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:#6a4a3a;padding:8px 20px 8px;">
     Market Data
   </div>
-  <div style="margin:0 16px 12px; background:#2e1a0e; border-radius:8px; padding:14px; border:1px solid #3a1f12;">
-    <div style="font-size:0.65rem; color:#7a5c4e; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;">
+  <div style="margin:0 16px 12px;background:#2e1a0e;border-radius:8px;padding:14px;border:1px solid #3a1f12;">
+    <div style="font-size:0.65rem;color:#7a5c4e;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">
       Source
     </div>
-    <div style="font-size:0.82rem; color:#9bc49b; display:flex; align-items:center; gap:6px;">
+    <div style="font-size:0.82rem;color:#9bc49b;display:flex;align-items:center;gap:6px;">
       <span style="width:7px;height:7px;background:#4caf50;border-radius:50%;display:inline-block;"></span>
       Yahoo Finance (live)
     </div>
   </div>
 
-  <!-- Stats -->
-  <div style="font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#6a4a3a; padding:8px 20px 8px;">
+  <!-- Activity -->
+  <div style="font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:#6a4a3a;padding:8px 20px 8px;">
     Activity
   </div>
-  <div style="padding:0 20px 8px; display:flex; flex-direction:column; gap:8px;">
+  <div style="padding:0 20px 8px;display:flex;flex-direction:column;gap:8px;">
     <div style="display:flex;align-items:center;gap:10px;font-size:0.78rem;color:#6a4a3a;">
       <span>💬</span>
       <span style="color:#e0d4ca;font-weight:600;">—</span>
@@ -328,154 +255,150 @@ SIDEBAR_HTML = """
     </div>
   </div>
 
+  <!-- Spacer -->
+  <div style="flex:1;"></div>
+
   <!-- Privacy notice -->
-  <div style="margin:auto 0 0; padding:14px 16px 0; border-top:1px solid #3a1f12;">
-    <div style="font-size:0.7rem; color:#5a3a2a; line-height:1.55; padding:10px 4px;">
+  <div style="padding:14px 16px 0;border-top:1px solid #3a1f12;flex-shrink:0;">
+    <div style="font-size:0.7rem;color:#5a3a2a;line-height:1.55;padding:10px 4px;">
       🔒 Progress is saved privately on this device. Finley never collects or stores your identity.
     </div>
   </div>
 
-  <!-- Bottom buttons -->
-  <div style="padding:10px 16px 14px; display:flex; flex-direction:column; gap:8px;">
+  <!-- GitHub link -->
+  <div style="padding:10px 16px 14px;flex-shrink:0;">
     <a href="https://github.com/kpal002/intelligent-financial-advisor"
        target="_blank" style="text-decoration:none;">
       <div style="
-          border:1px solid #3a1f12; border-radius:7px; color:#7a5c4e; padding:9px 14px;
-          font-size:0.78rem; cursor:pointer; display:flex; align-items:center; gap:8px;
-          transition:all 0.15s;
-      " onmouseover="this.style.color='#c4a090';this.style.borderColor='#6a4a3a'"
-         onmouseout="this.style.color='#7a5c4e';this.style.borderColor='#3a1f12'">
-        ⭐ &nbsp; View on GitHub
+          border:1px solid #3a1f12;border-radius:7px;color:#7a5c4e;
+          padding:9px 14px;font-size:0.78rem;cursor:pointer;
+          display:flex;align-items:center;gap:8px;
+      ">
+        ⭐ &nbsp;View on GitHub
       </div>
     </a>
   </div>
 
-  <div style="text-align:center;font-size:0.65rem;color:#4a2a1a;padding:0 0 14px;font-family:sans-serif;">
+  <div style="text-align:center;font-size:0.65rem;color:#4a2a1a;padding:0 0 14px;">
     © 2025 Kuntal Pal
   </div>
 </div>
 """
 
-WELCOME_HEADER_HTML = """
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  WELCOME PLACEHOLDER  — shown inside the chatbot when history is empty
+# ══════════════════════════════════════════════════════════════════════════════
+
+_live_badge = (
+    '<span style="display:inline-flex;align-items:center;gap:6px;'
+    'background:#1e3a1e;border:1px solid #2d5a2d;border-radius:20px;'
+    'padding:4px 12px;font-size:0.72rem;color:#7ec87e;">'
+    '<span style="width:7px;height:7px;border-radius:50%;background:#4caf50;display:inline-block;"></span>'
+    'Ready to analyze</span>'
+    if LIVE else
+    '<span style="display:inline-flex;align-items:center;gap:6px;'
+    'background:#3a2a1a;border:1px solid #5a3a1a;border-radius:20px;'
+    'padding:4px 12px;font-size:0.72rem;color:#c49a4a;">'
+    '<span style="width:7px;height:7px;border-radius:50%;background:#c49a4a;display:inline-block;"></span>'
+    'Demo mode — add ANTHROPIC_API_KEY to enable live analysis</span>'
+)
+
+WELCOME_PLACEHOLDER = f"""
 <div style="
-    text-align:center;
-    padding: 40px 24px 24px;
+    display:flex; flex-direction:column; align-items:center;
+    padding:48px 32px 32px;
     font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    min-height:100%; background:#f5f0ea;
 ">
+
+  <!-- Status badge -->
+  <div style="margin-bottom:32px;">{_live_badge}</div>
+
+  <!-- Headline -->
   <h1 style="
-      font-size:2.9rem; font-weight:700; color:#1c1c1c;
-      margin:0 0 14px; font-family:Georgia,'Times New Roman',serif;
-      letter-spacing:-0.02em;
+      font-size:2.6rem; font-weight:700; color:#1c1c1c;
+      margin:0 0 12px; font-family:Georgia,'Times New Roman',serif;
+      letter-spacing:-0.02em; text-align:center;
   ">Hello, I'm Finley.</h1>
-  <p style="font-size:1rem; color:#666; line-height:1.7; margin:0;">
+  <p style="font-size:1rem;color:#666;line-height:1.7;text-align:center;margin:0 0 36px;max-width:480px;">
     Today is a great day to review your portfolio!<br>Where shall we begin?
   </p>
-</div>
-"""
 
-MODE_CARDS_HTML = """
-<div style="
-    display:flex; gap:16px;
-    max-width:820px; margin:0 auto 16px;
-    padding:0 32px; box-sizing:border-box;
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-">
-  <!-- Card 1: Analyze portfolio -->
-  <div style="
-      flex:1; background:white; border:1.5px solid #e8ddd4; border-radius:12px;
-      padding:24px 20px; cursor:pointer; transition:all 0.2s ease;
-  "
-  onmouseover="this.style.borderColor='#c4622d';this.style.boxShadow='0 4px 20px rgba(196,98,45,0.1)';this.style.transform='translateY(-1px)'"
-  onmouseout="this.style.borderColor='#e8ddd4';this.style.boxShadow='none';this.style.transform='none'"
-  onclick="fillPrompt('Analyze my portfolio and give me a full investment recommendation.')">
-    <span style="font-size:1.5rem;display:block;margin-bottom:12px;">📊</span>
-    <h3 style="font-size:0.97rem;font-weight:600;color:#1c1c1c;margin:0 0 8px;">Analyze my portfolio</h3>
-    <p style="font-size:0.82rem;color:#666;line-height:1.5;margin:0;">
-      Get a full report — ARIMA forecasts, Markowitz optimization,
-      VaR risk metrics, and Claude's synthesis.
-    </p>
+  <!-- Mode cards -->
+  <div style="display:flex;gap:14px;max-width:720px;width:100%;margin:0 0 28px;flex-wrap:wrap;">
+
+    <div style="flex:1;min-width:180px;background:white;border:1.5px solid #e8ddd4;
+                border-radius:12px;padding:22px 18px;cursor:pointer;transition:all 0.2s;"
+         onmouseover="this.style.borderColor='#c4622d';this.style.transform='translateY(-2px)'"
+         onmouseout="this.style.borderColor='#e8ddd4';this.style.transform='none'"
+         onclick="finleyFill('Analyze my portfolio and give me a full investment recommendation.')">
+      <span style="font-size:1.4rem;display:block;margin-bottom:10px;">📊</span>
+      <h3 style="font-size:0.94rem;font-weight:600;color:#1c1c1c;margin:0 0 6px;">Analyze my portfolio</h3>
+      <p style="font-size:0.81rem;color:#666;line-height:1.5;margin:0;">
+        Full ARIMA, Markowitz &amp; VaR analysis with Claude's synthesis.
+      </p>
+    </div>
+
+    <div style="flex:1;min-width:180px;background:white;border:1.5px solid #c4622d;
+                border-radius:12px;padding:22px 18px;cursor:pointer;position:relative;transition:all 0.2s;"
+         onmouseover="this.style.transform='translateY(-2px)'"
+         onmouseout="this.style.transform='none'"
+         onclick="finleyFill('Can you explain what Sharpe ratio means and whether mine is good?')">
+      <span style="position:absolute;top:-10px;right:14px;background:#c4622d;color:white;
+                   font-size:0.6rem;font-weight:700;letter-spacing:0.07em;
+                   padding:3px 8px;border-radius:4px;">BETA</span>
+      <span style="font-size:1.4rem;display:block;margin-bottom:10px;">💬</span>
+      <h3 style="font-size:0.94rem;font-weight:600;color:#1c1c1c;margin:0 0 6px;">Ask a finance question</h3>
+      <p style="font-size:0.81rem;color:#666;line-height:1.5;margin:0;">
+        Drill into any concept with fresh explanations and examples.
+      </p>
+    </div>
+
+    <div style="flex:1;min-width:180px;background:white;border:1.5px solid #e8ddd4;
+                border-radius:12px;padding:22px 18px;opacity:0.45;position:relative;">
+      <span style="position:absolute;top:-10px;right:14px;background:#aaa;color:white;
+                   font-size:0.6rem;font-weight:700;letter-spacing:0.07em;
+                   padding:3px 8px;border-radius:4px;">COMING SOON</span>
+      <span style="font-size:1.4rem;display:block;margin-bottom:10px;">⚡</span>
+      <h3 style="font-size:0.94rem;font-weight:600;color:#1c1c1c;margin:0 0 6px;">Stress test my portfolio</h3>
+      <p style="font-size:0.81rem;color:#666;line-height:1.5;margin:0;">
+        Rate hike, crash, inflation — see how your allocation holds up.
+      </p>
+    </div>
+
   </div>
 
-  <!-- Card 2: Ask a question (BETA) -->
-  <div style="
-      flex:1; background:white; border:1.5px solid #c4622d; border-radius:12px;
-      padding:24px 20px; cursor:pointer; position:relative; transition:all 0.2s ease;
-  "
-  onmouseover="this.style.boxShadow='0 4px 20px rgba(196,98,45,0.12)';this.style.transform='translateY(-1px)'"
-  onmouseout="this.style.boxShadow='none';this.style.transform='none'"
-  onclick="fillPrompt('Can you explain what Sharpe ratio means and whether mine is good?')">
-    <span style="
-        position:absolute;top:-10px;right:16px;
-        background:#c4622d;color:white;
-        font-size:0.62rem;font-weight:700;letter-spacing:0.07em;
-        padding:3px 9px;border-radius:4px;
-    ">BETA</span>
-    <span style="font-size:1.5rem;display:block;margin-bottom:12px;">💬</span>
-    <h3 style="font-size:0.97rem;font-weight:600;color:#1c1c1c;margin:0 0 8px;">Ask a finance question</h3>
-    <p style="font-size:0.82rem;color:#666;line-height:1.5;margin:0;">
-      Drill into any concept. Finley generates fresh explanations,
-      checks your understanding, and references your portfolio.
-    </p>
+  <div style="font-size:0.82rem;color:#aaa;margin-bottom:4px;">
+    or use the quick prompts below ↓
   </div>
 
-  <!-- Card 3: Stress test (COMING SOON) -->
-  <div style="
-      flex:1; background:white; border:1.5px solid #e8ddd4; border-radius:12px;
-      padding:24px 20px; opacity:0.45; position:relative;
-  ">
-    <span style="
-        position:absolute;top:-10px;right:16px;
-        background:#aaa;color:white;
-        font-size:0.62rem;font-weight:700;letter-spacing:0.07em;
-        padding:3px 9px;border-radius:4px;
-    ">COMING SOON</span>
-    <span style="font-size:1.5rem;display:block;margin-bottom:12px;">⚡</span>
-    <h3 style="font-size:0.97rem;font-weight:600;color:#1c1c1c;margin:0 0 8px;">Stress test my portfolio</h3>
-    <p style="font-size:0.82rem;color:#666;line-height:1.5;margin:0;">
-      Rate hike +2%, market crash 20%, inflation spike — see how
-      your allocation holds up across 10 scenarios.
-    </p>
-  </div>
 </div>
 
 <script>
-function fillPrompt(text) {
-    // Target the Gradio textbox by its elem_id
-    const box = document.querySelector('#msg-box textarea');
-    if (box) {
-        box.value = text;
-        box.dispatchEvent(new Event('input', { bubbles: true }));
-        box.focus();
-    }
-}
+function finleyFill(text) {{
+  /* Find the visible, editable textarea — works with gr.ChatInterface */
+  const ta = Array.from(document.querySelectorAll('textarea'))
+               .find(t => t.offsetParent !== null && !t.readOnly && !t.disabled);
+  if (ta) {{
+    const nativeSet = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+    nativeSet.call(ta, text);
+    ta.dispatchEvent(new Event('input', {{ bubbles: true }}));
+    ta.focus();
+  }}
+}}
 </script>
 """
 
-DIVIDER_HTML = """
-<div style="
-    text-align:center; color:#aaa; font-size:0.83rem;
-    margin:0 0 12px;
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-">
-  or jump straight in with
-</div>
-"""
-
-
-STATUS_HTML = (
-    '<div id="status-chip">'
-    '<span style="width:7px;height:7px;background:#4caf50;border-radius:50%;display:inline-block;"></span>'
-    f'{"Ready to analyze" if LIVE else "Demo mode — set ANTHROPIC_API_KEY to enable live analysis"}'
-    "</div>"
-)
-
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  DEMO RESPONSE (used when advisor is not available)
+#  DEMO RESPONSE
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _demo_response(_query: str, symbols: list[str]) -> str:
     sym_str = " and ".join(symbols) if symbols else "your portfolio"
+    s0 = symbols[0] if symbols else "AAPL"
+    s1 = symbols[1] if len(symbols) > 1 else "MSFT"
     return f"""## Investment Advisory Report — *Demo Mode*
 
 > ⚠️ **Demo mode active.** Set `ANTHROPIC_API_KEY` as a Hugging Face Space secret to enable live analysis.
@@ -484,33 +407,30 @@ def _demo_response(_query: str, symbols: list[str]) -> str:
 
 **Executive Summary**
 
-Based on our multi-agent pipeline analysis of **{sym_str}**, the portfolio currently
-sits at a **medium risk** level with solid risk-adjusted returns. The ARIMA models
-show bullish momentum for the primary holding.
+Based on our multi-agent pipeline analysis of **{sym_str}**, the portfolio sits at a
+**medium risk** level with solid risk-adjusted returns. ARIMA models show bullish
+momentum for the primary holding.
 
 **Market Outlook** *(sample)*
 
 | Symbol | Trend | 30-Day Forecast | RSI |
 |--------|-------|-----------------|-----|
-| {symbols[0] if symbols else "AAPL"} | Bullish | $198.50 | 61.2 |
-| {symbols[1] if len(symbols) > 1 else "MSFT"} | Neutral | $415.20 | 50.4 |
+| {s0} | Bullish | $198.50 | 61.2 |
+| {s1} | Neutral | $415.20 | 50.4 |
 
 **Risk Metrics** *(sample)*
 
 - **Sharpe Ratio:** 0.91 *(solid risk-adjusted return)*
 - **Sortino Ratio:** 1.18 *(downside risk well-controlled)*
-- **VaR (95%, daily):** −1.4% *(max expected daily loss at 95% confidence)*
+- **VaR (95%, daily):** −1.4%
 - **Max Drawdown:** −12.3%
 
 **Recommendations** *(sample)*
 
-- **{symbols[0] if symbols else "AAPL"}** → **BUY** (confidence: 82%) — Strong RSI momentum and bullish ARIMA trend support adding to this position.
-- **{symbols[1] if len(symbols) > 1 else "MSFT"}** → **HOLD** (confidence: 65%) — Range-bound; await a clearer catalyst before adding.
+- **{s0}** → **BUY** (confidence: 82%) — Strong RSI momentum and bullish ARIMA trend.
+- **{s1}** → **HOLD** (confidence: 65%) — Range-bound; await a clearer catalyst.
 
-**Optimal Allocation** (Markowitz max-Sharpe)
-
-The optimizer recommends shifting toward a 58% / 42% split to improve
-risk-adjusted returns.
+**Optimal Allocation** (Markowitz max-Sharpe): 58% / 42%
 
 ---
 *This is a **demo response**. In live mode, Finley runs real ARIMA forecasting,
@@ -526,7 +446,6 @@ synthesizes this report.*
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _parse_portfolio(syms_raw: str, wts_raw: str) -> tuple[list[str], dict[str, float]]:
-    """Parse sidebar inputs into (symbols, allocation_dict)."""
     symbols = [s.strip().upper() for s in syms_raw.split(",") if s.strip()]
     if not symbols:
         symbols = ["AAPL", "MSFT"]
@@ -578,155 +497,66 @@ def call_advisor(query: str, syms_raw: str, wts_raw: str) -> str:
 #  GRADIO APP
 # ══════════════════════════════════════════════════════════════════════════════
 
-QUICK_PROMPTS = [
+def respond(
+    message: str,
+    history: list,
+    symbols: str,
+    weights: str,
+) -> str:
+    """Chat handler for gr.ChatInterface."""
+    return call_advisor(message.strip(), symbols, weights)
+
+
+EXAMPLES = [
     "Should I rebalance given recent Fed rate hikes?",
     "Can you explain what my Sharpe ratio actually means?",
     "I need to reduce risk — where should I start?",
     "Show me how Isolation Forest detects anomalies in my portfolio",
 ]
 
-with gr.Blocks(css=CSS, theme=gr.themes.Base(), title="Finley — Financial Advisor") as demo:
+_chatbot_kwargs: dict = {}
+if _GRADIO_MAJOR < 6:
+    _chatbot_kwargs["type"] = "messages"
 
-    # ── App-level state ────────────────────────────────────────────────────────
-    chat_history = gr.State([])
+with gr.Blocks(
+    css=CSS,
+    theme=gr.themes.Base(),
+    title="Finley — Financial Advisor",
+) as demo:
 
-    # ══════════════════════════════════════════════════════════════════════════
-    with gr.Row(elem_id="app-row", equal_height=True):
+    # ── Fixed sidebar overlay — rendered at DOM root, styled with inline CSS ──
+    gr.HTML(SIDEBAR_HTML)
 
-        # ── SIDEBAR ───────────────────────────────────────────────────────────
-        with gr.Column(elem_id="sidebar-col", scale=0, min_width=250):
-            gr.HTML(SIDEBAR_HTML)
-
-            with gr.Column(elem_id="portfolio-section"):
-                gr.HTML("""
-                  <div style="font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;
-                              color:#555;padding:12px 20px 6px;font-family:sans-serif;">
-                    Portfolio Setup
-                  </div>
-                """)
-                symbols_box = gr.Textbox(
-                    label="Symbols (comma-separated)",
-                    value="AAPL, MSFT",
-                    placeholder="AAPL, MSFT, JPM, JNJ",
-                )
-                weights_box = gr.Textbox(
-                    label="Weights % (blank = equal)",
-                    placeholder="60, 40   ← or leave blank",
-                )
-
-        # ── MAIN CONTENT ──────────────────────────────────────────────────────
-        with gr.Column(elem_id="main-col", scale=1):
-
-            # Status chip (top-right feel via HTML)
-            gr.HTML(f"""
-              <div style="display:flex;justify-content:flex-end;padding:14px 20px 0;">
-                <div style="
-                    display:inline-flex;align-items:center;gap:6px;
-                    background:{'#1e3a1e' if LIVE else '#3a2a1a'};
-                    border:1px solid {'#2d5a2d' if LIVE else '#5a3a1a'};
-                    border-radius:20px;padding:5px 14px;
-                    font-size:0.72rem;font-family:sans-serif;
-                    color:{'#7ec87e' if LIVE else '#c49a4a'};
-                ">
-                  <span style="width:7px;height:7px;border-radius:50%;display:inline-block;
-                               background:{'#4caf50' if LIVE else '#c49a4a'};"></span>
-                  {"Ready to analyze" if LIVE else "Demo mode — add ANTHROPIC_API_KEY to enable live analysis"}
-                </div>
-              </div>
-            """)
-
-            # ── WELCOME SCREEN ────────────────────────────────────────────────
-            with gr.Column(elem_id="welcome-col", visible=True) as welcome_col:
-
-                gr.HTML(WELCOME_HEADER_HTML)
-                gr.HTML(MODE_CARDS_HTML)
-                gr.HTML(DIVIDER_HTML)
-
-                # Quick-prompt 2×2 grid
-                with gr.Row():
-                    q_btns = []
-                    for i in range(0, 4, 2):
-                        with gr.Column():
-                            for j in range(2):
-                                if i + j < len(QUICK_PROMPTS):
-                                    b = gr.Button(
-                                        QUICK_PROMPTS[i + j],
-                                        elem_classes=["qbtn"],
-                                    )
-                                    q_btns.append(b)
-
-            # ── CHAT SCREEN ───────────────────────────────────────────────────
-            with gr.Column(elem_id="chat-col", visible=False) as chat_col:
-                chatbot = gr.Chatbot(
-                    elem_id="chatbot",
-                    height=600,
-                    show_label=False,
-                    avatar_images=(None, "https://api.dicebear.com/7.x/bottts/svg?seed=finley"),
-                    **_CHATBOT_KWARGS,
-                )
-
-            # ── INPUT BAR (always visible) ────────────────────────────────────
-            with gr.Row(elem_id="input-bar"):
-                msg_box  = gr.Textbox(
-                    show_label=False,
-                    placeholder="Ask Finley a question, share your portfolio, or describe your goals…",
-                    elem_id="msg-box",
-                    lines=1,
-                    max_lines=4,
-                    scale=8,
-                )
-                send_btn = gr.Button("↑", elem_id="send-btn", scale=0, min_width=48)
-
-    # ══════════════════════════════════════════════════════════════════════════
-    #  EVENT HANDLERS
-    # ══════════════════════════════════════════════════════════════════════════
-
-    def submit_message(query, history, syms, wts):
-        """Handle a new user message. History is a list of role/content dicts."""
-        query = query.strip()
-        if not query:
-            yield history, "", gr.update(visible=True), gr.update(visible=False)
-            return
-
-        history = list(history) + [{"role": "user", "content": query}]
-        yield history, "", gr.update(visible=False), gr.update(visible=True)
-
-        # Typing indicator
-        thinking = history + [{"role": "assistant", "content": "⏳ Analyzing your portfolio… (60–120 s in live mode)"}]
-        yield thinking, "", gr.update(visible=False), gr.update(visible=True)
-
-        response = call_advisor(query, syms, wts)
-        history = history + [{"role": "assistant", "content": response}]
-        yield history, "", gr.update(visible=False), gr.update(visible=True)
-
-    def quick_prompt_click(prompt_text, history, syms, wts):
-        """Quick-prompt button: run prompt directly."""
-        yield from submit_message(prompt_text, history, syms, wts)
-
-    # Wire send button and Enter key
-    send_outputs = [chat_history, msg_box, welcome_col, chat_col]
-
-    send_btn.click(
-        submit_message,
-        inputs=[msg_box, chat_history, symbols_box, weights_box],
-        outputs=send_outputs,
+    # ── Main chat interface ────────────────────────────────────────────────────
+    gr.ChatInterface(
+        fn=respond,
+        chatbot=gr.Chatbot(
+            elem_id="chatbot",
+            placeholder=WELCOME_PLACEHOLDER,
+            show_label=False,
+            avatar_images=(
+                None,
+                "https://api.dicebear.com/7.x/bottts/svg?seed=finley",
+            ),
+            **_chatbot_kwargs,
+        ),
+        additional_inputs=[
+            gr.Textbox(
+                label="Portfolio Symbols (comma-separated)",
+                value="AAPL, MSFT",
+                placeholder="AAPL, MSFT, JPM, JNJ",
+            ),
+            gr.Textbox(
+                label="Weights % (leave blank for equal weight)",
+                placeholder="60, 40   ← or leave blank",
+            ),
+        ],
+        additional_inputs_accordion=gr.Accordion(
+            "⚙️  Portfolio Settings", open=False
+        ),
+        examples=EXAMPLES,
+        title="",
     )
-    msg_box.submit(
-        submit_message,
-        inputs=[msg_box, chat_history, symbols_box, weights_box],
-        outputs=send_outputs,
-    )
-
-    # Wire quick prompts
-    for btn in q_btns:
-        btn.click(
-            quick_prompt_click,
-            inputs=[btn, chat_history, symbols_box, weights_box],
-            outputs=send_outputs,
-        )
-
-    # Keep chatbot display in sync with history state
-    chat_history.change(lambda h: h, inputs=[chat_history], outputs=[chatbot])
 
 
 # ══════════════════════════════════════════════════════════════════════════════
