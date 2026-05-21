@@ -38,29 +38,35 @@ CSS = """
 /* ── Variables ─────────────────────────────────────────────────── */
 :root {
     --cream:          #f5f0ea;
-    --sidebar:        #241410;   /* deep coffee brown — not pure black */
+    --sidebar:        #241410;
     --sidebar-border: #3a1f12;
-    --sidebar-hover:  #2e190e;
     --accent:         #c4622d;
     --accent-hover:   #a8521f;
-    --card-bg:        #ffffff;
     --card-border:    #e8ddd4;
-    --card-radius:    12px;
     --text-dark:      #1c1c1c;
     --text-mid:       #555;
     --text-light:     #999;
-    --sb-text:        #e8ddd4;
-    --sb-muted:       #7a5c4e;
     --font-serif:     Georgia, 'Times New Roman', serif;
     --font-sans:      -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* ── Aggressive Gradio shell reset — flush edge-to-edge ─────────── */
-html, body { margin: 0 !important; padding: 0 !important; }
+/* ── Full reset — Gradio 5 wraps content in <gradio-app> ────────── */
+html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+}
+gradio-app {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+}
 .gradio-container,
 .gradio-container > .main,
 .gradio-container > .main > .wrap,
-.gradio-container > .main > .wrap > .contain {
+.gradio-container > .main > .wrap > .contain,
+.gradio-container > .main > .wrap > .gap {
     max-width: 100% !important;
     width: 100% !important;
     padding: 0 !important;
@@ -68,8 +74,9 @@ html, body { margin: 0 !important; padding: 0 !important; }
     border-radius: 0 !important;
     background: var(--cream) !important;
     min-height: 100vh;
+    gap: 0 !important;
 }
-footer, .footer, .svelte-1ipelgc { display: none !important; }
+footer, .footer { display: none !important; }
 
 /* ── Two-column shell ───────────────────────────────────────────── */
 #app-row {
@@ -79,25 +86,28 @@ footer, .footer, .svelte-1ipelgc { display: none !important; }
     gap: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
 }
+/* Strip padding from every Gradio block wrapper inside the row */
 #app-row > .block,
-#app-row > div { padding: 0 !important; gap: 0 !important; }
+#app-row > div { padding: 0 !important; margin: 0 !important; gap: 0 !important; }
 
-/* ── Sidebar column — flush left, coffee brown ──────────────────── */
+/* ── Sidebar — flush to left edge, coffee brown ─────────────────── */
 #sidebar-col {
     min-width: 250px !important;
     max-width: 250px !important;
     width: 250px !important;
+    flex-shrink: 0 !important;
     background: var(--sidebar) !important;
     border-right: 1px solid var(--sidebar-border) !important;
     padding: 0 !important;
     margin: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-    flex-shrink: 0 !important;
 }
 #sidebar-col > .block,
-#sidebar-col > div {
+#sidebar-col > div,
+#sidebar-col > .block > div {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -118,7 +128,8 @@ footer, .footer, .svelte-1ipelgc { display: none !important; }
     box-shadow: none !important;
 }
 #main-col > .block,
-#main-col > div {
+#main-col > div,
+#main-col > .block > div {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -127,81 +138,80 @@ footer, .footer, .svelte-1ipelgc { display: none !important; }
 }
 
 /* ── Welcome screen ─────────────────────────────────────────────── */
-#welcome-col {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0 0 32px;
-}
+#welcome-col { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 0 40px; }
 #welcome-col > .block,
-#welcome-col > div {
+#welcome-col > div,
+#welcome-col > .block > div {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     width: 100%;
     padding: 0 !important;
+    margin: 0 !important;
 }
 
-/* ── Quick-prompt buttons — equal height ────────────────────────── */
-/* Make the row's columns stretch to the same height */
-#welcome-col .gap,
-#welcome-col > .block > .gap { align-items: stretch !important; }
+/* ── Quick-prompt buttons — equal height, matching site font ────── */
+/* Row stretches all columns to the same height */
+#welcome-col .gap { align-items: stretch !important; }
 
-/* Each .qbtn wrapper stretches; button fills 100% of that height */
 .qbtn {
     display: flex !important;
     flex-direction: column !important;
     height: 100% !important;
+    padding: 0 !important;
 }
+.qbtn > .block { padding: 0 !important; height: 100% !important; display: flex !important; flex-direction: column !important; }
+/* The actual button — white card, serif-adjacent weight, dark text */
 .qbtn button {
-    background: white !important;
+    background: #ffffff !important;
     border: 1.5px solid var(--card-border) !important;
     border-radius: 10px !important;
-    color: #333 !important;
-    font-size: 0.875rem !important;
+    color: #2a1c14 !important;
+    font-size: 0.9rem !important;
     font-family: var(--font-sans) !important;
+    font-weight: 500 !important;
     text-align: left !important;
-    padding: 16px 18px !important;
-    line-height: 1.45 !important;
+    padding: 18px 20px !important;
+    line-height: 1.5 !important;
     white-space: normal !important;
-    flex: 1 !important;           /* fill the wrapper height */
+    flex: 1 !important;
     height: 100% !important;
-    min-height: 72px !important;  /* floor so they're never too short */
+    min-height: 76px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+    transition: border-color 0.15s, background 0.15s !important;
 }
 .qbtn button:hover {
     border-color: var(--accent) !important;
-    background: #fdf8f5 !important;
-    color: #1c1c1c !important;
+    background: #fdf7f3 !important;
+    color: var(--accent) !important;
 }
 
-/* ── Chat screen — cream background, no dark box ────────────────── */
+/* ── Chat screen — cream, no dark box ──────────────────────────── */
 #chat-col { flex: 1; display: flex; flex-direction: column; }
 #chat-col > .block,
-#chat-col > div {
+#chat-col > div,
+#chat-col > .block > div {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
 }
 
-/* Chatbot container — force cream so Gradio's dark default is gone */
+/* Force cream on every layer of the chatbot component */
 #chatbot,
 #chatbot > div,
 #chatbot .wrap,
 #chatbot .bubble-wrap,
 #chatbot .scroll-hide,
-div[id="chatbot"] {
+#chatbot .message-wrap {
     background: var(--cream) !important;
     border: none !important;
     box-shadow: none !important;
 }
-
-/* Message area padding */
 #chatbot .message-wrap,
-#chatbot .bubble-wrap { padding: 20px 40px !important; gap: 18px !important; }
+#chatbot .bubble-wrap { padding: 20px 40px !important; gap: 16px !important; }
 
-/* Bot bubble — white card on cream */
+/* Bot bubble */
 #chatbot .bot,
 #chatbot [data-testid="bot"],
 #chatbot .message.bot {
@@ -209,10 +219,9 @@ div[id="chatbot"] {
     border: 1px solid var(--card-border) !important;
     border-radius: 12px !important;
     color: var(--text-dark) !important;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
 }
-
-/* User bubble — accent colour */
+/* User bubble */
 #chatbot .user,
 #chatbot [data-testid="user"],
 #chatbot .message.user {
@@ -221,11 +230,7 @@ div[id="chatbot"] {
     border-radius: 12px !important;
     border: none !important;
 }
-
-/* Text inside bubbles */
-#chatbot .message p,
-#chatbot .message span,
-#chatbot .prose { color: inherit !important; }
+#chatbot .message p, #chatbot .message span, #chatbot .prose { color: inherit !important; }
 
 /* ── Input bar ──────────────────────────────────────────────────── */
 #input-bar {
@@ -236,12 +241,9 @@ div[id="chatbot"] {
     align-items: center;
     gap: 10px;
 }
-#input-bar > .block,
-#input-bar > div {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
+#input-bar > .block, #input-bar > div {
+    background: transparent !important; border: none !important;
+    box-shadow: none !important; padding: 0 !important;
 }
 #msg-box textarea {
     border: 1.5px solid var(--card-border) !important;
@@ -269,61 +271,12 @@ div[id="chatbot"] {
     min-width: 44px !important;
     height: 44px !important;
     padding: 0 !important;
+    font-weight: 600 !important;
 }
 #send-btn:hover { background: var(--accent-hover) !important; }
 
-/* ── Toolbar buttons (Hint / Graph) ─────────────────────────────── */
-.tool-btn button {
-    background: white !important;
-    border: 1.5px solid var(--card-border) !important;
-    border-radius: 8px !important;
-    color: var(--text-mid) !important;
-    font-size: 0.82rem !important;
-    font-family: var(--font-sans) !important;
-    padding: 8px 14px !important;
-    white-space: nowrap !important;
-    height: 36px !important;
-}
-.tool-btn button:hover {
-    border-color: var(--accent) !important;
-    color: var(--accent) !important;
-}
-
-/* ── Session footer ─────────────────────────────────────────────── */
-#session-footer {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 8px 24px;
-    font-size: 0.8rem;
-    color: var(--text-light);
-    font-family: var(--font-sans);
-}
-#session-footer > .block,
-#session-footer > div {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-}
-#end-btn button {
-    background: transparent !important;
-    border: 1.5px solid #ddd !important;
-    border-radius: 8px !important;
-    color: var(--accent) !important;
-    font-size: 0.82rem !important;
-    font-family: var(--font-sans) !important;
-    padding: 6px 14px !important;
-    height: auto !important;
-}
-#end-btn button:hover {
-    background: #fdf8f5 !important;
-    border-color: var(--accent) !important;
-}
-
 /* ── Portfolio sidebar inputs ───────────────────────────────────── */
-#portfolio-section textarea,
-#portfolio-section input {
+#portfolio-section textarea, #portfolio-section input {
     background: #2e1a0e !important;
     border: 1px solid #4a2a18 !important;
     border-radius: 8px !important;
@@ -340,27 +293,9 @@ div[id="chatbot"] {
     text-transform: uppercase !important;
     letter-spacing: 0.1em !important;
 }
-#portfolio-section .block,
-#portfolio-section > div {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 4px 16px !important;
-}
-
-/* ── Status chip ────────────────────────────────────────────────── */
-#status-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #1e3a1e;
-    border: 1px solid #2d5a2d;
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 0.72rem;
-    color: #7ec87e;
-    font-family: var(--font-sans);
-    margin: 12px auto 0;
+#portfolio-section .block, #portfolio-section > div {
+    background: transparent !important; border: none !important;
+    box-shadow: none !important; padding: 4px 16px !important;
 }
 """
 
@@ -571,17 +506,6 @@ DIVIDER_HTML = """
 </div>
 """
 
-SESSION_FOOTER_HTML = """
-<div style="
-    display:flex; align-items:center; justify-content:flex-end;
-    color:#bbb; font-size:0.78rem;
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-    gap:6px;
-">
-  When ready to check what you learned
-  <span style="font-size:0.9rem;">→</span>
-</div>
-"""
 
 STATUS_HTML = (
     '<div id="status-chip">'
@@ -710,7 +634,6 @@ with gr.Blocks(css=CSS, theme=gr.themes.Base(), title="Finley — Financial Advi
 
     # ── App-level state ────────────────────────────────────────────────────────
     chat_history = gr.State([])
-    in_chat      = gr.State(False)
 
     # ══════════════════════════════════════════════════════════════════════════
     with gr.Row(elem_id="app-row", equal_height=True):
@@ -789,9 +712,7 @@ with gr.Blocks(css=CSS, theme=gr.themes.Base(), title="Finley — Financial Advi
 
             # ── INPUT BAR (always visible) ────────────────────────────────────
             with gr.Row(elem_id="input-bar"):
-                hint_btn  = gr.Button("⊙  Hint",  elem_classes=["tool-btn"], scale=0, min_width=80)
-                graph_btn = gr.Button("↗  Graph", elem_classes=["tool-btn"], scale=0, min_width=80)
-                msg_box   = gr.Textbox(
+                msg_box  = gr.Textbox(
                     show_label=False,
                     placeholder="Ask Finley a question, share your portfolio, or describe your goals…",
                     elem_id="msg-box",
@@ -799,12 +720,7 @@ with gr.Blocks(css=CSS, theme=gr.themes.Base(), title="Finley — Financial Advi
                     max_lines=4,
                     scale=8,
                 )
-                send_btn  = gr.Button("↑", elem_id="send-btn", scale=0, min_width=48)
-
-            # ── SESSION FOOTER ────────────────────────────────────────────────
-            with gr.Row(elem_id="session-footer"):
-                gr.HTML(SESSION_FOOTER_HTML)
-                end_btn = gr.Button("End Session", elem_id="end-btn", size="sm", scale=0)
+                send_btn = gr.Button("↑", elem_id="send-btn", scale=0, min_width=48)
 
     # ══════════════════════════════════════════════════════════════════════════
     #  EVENT HANDLERS
@@ -832,14 +748,6 @@ with gr.Blocks(css=CSS, theme=gr.themes.Base(), title="Finley — Financial Advi
         """Quick-prompt button: run prompt directly."""
         yield from submit_message(prompt_text, history, syms, wts)
 
-    def hint_click(history, syms, wts):
-        hint_query = "Give me a one-line hint about what I should focus on in my portfolio right now."
-        yield from submit_message(hint_query, history, syms, wts)
-
-    def end_session():
-        """Reset to welcome screen."""
-        return [], gr.update(visible=True), gr.update(visible=False)
-
     # Wire send button and Enter key
     send_outputs = [chat_history, msg_box, welcome_col, chat_col]
 
@@ -862,23 +770,8 @@ with gr.Blocks(css=CSS, theme=gr.themes.Base(), title="Finley — Financial Advi
             outputs=send_outputs,
         )
 
-    # Hint button
-    hint_btn.click(
-        hint_click,
-        inputs=[chat_history, symbols_box, weights_box],
-        outputs=send_outputs,
-    )
-
-    # End session
-    end_btn.click(
-        end_session,
-        inputs=[],
-        outputs=[chat_history, welcome_col, chat_col],
-    )
-
     # Keep chatbot display in sync with history state
     chat_history.change(lambda h: h, inputs=[chat_history], outputs=[chatbot])
-    end_btn.click(lambda: [], outputs=[chatbot])
 
 
 # ══════════════════════════════════════════════════════════════════════════════
