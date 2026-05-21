@@ -12,6 +12,10 @@ from datetime import datetime
 
 import gradio as gr
 
+# Gradio 5 uses type="messages" for dict-style chat; Gradio 6 removed the param.
+_GRADIO_MAJOR = int(gr.__version__.split(".")[0])
+_CHATBOT_KWARGS = {"type": "messages"} if _GRADIO_MAJOR < 6 else {}
+
 # ── Advisor bootstrap ──────────────────────────────────────────────────────────
 try:
     from src.llm.orchestrator import FinancialAdvisorGraph
@@ -710,6 +714,7 @@ with gr.Blocks(css=CSS, theme=gr.themes.Base(), title="Finley — Financial Advi
                     height=480,
                     show_label=False,
                     avatar_images=(None, "https://api.dicebear.com/7.x/bottts/svg?seed=finley"),
+                    **_CHATBOT_KWARGS,
                 )
 
             # ── INPUT BAR (always visible) ────────────────────────────────────
@@ -736,22 +741,21 @@ with gr.Blocks(css=CSS, theme=gr.themes.Base(), title="Finley — Financial Advi
     # ══════════════════════════════════════════════════════════════════════════
 
     def submit_message(query, history, syms, wts):
-        """Handle a new user message. History is list of (user, bot) tuples."""
+        """Handle a new user message. History is a list of role/content dicts."""
         query = query.strip()
         if not query:
             yield history, "", gr.update(visible=True), gr.update(visible=False)
             return
 
-        # Append user turn immediately (bot reply pending)
-        history = list(history) + [(query, None)]
+        history = list(history) + [{"role": "user", "content": query}]
         yield history, "", gr.update(visible=False), gr.update(visible=True)
 
-        # Show typing indicator
-        history[-1] = (query, "⏳ Analyzing your portfolio… (60–120 s in live mode)")
-        yield history, "", gr.update(visible=False), gr.update(visible=True)
+        # Typing indicator
+        thinking = history + [{"role": "assistant", "content": "⏳ Analyzing your portfolio… (60–120 s in live mode)"}]
+        yield thinking, "", gr.update(visible=False), gr.update(visible=True)
 
         response = call_advisor(query, syms, wts)
-        history[-1] = (query, response)
+        history = history + [{"role": "assistant", "content": response}]
         yield history, "", gr.update(visible=False), gr.update(visible=True)
 
     def quick_prompt_click(prompt_text, history, syms, wts):
@@ -762,7 +766,7 @@ with gr.Blocks(css=CSS, theme=gr.themes.Base(), title="Finley — Financial Advi
         hint_query = "Give me a one-line hint about what I should focus on in my portfolio right now."
         yield from submit_message(hint_query, history, syms, wts)
 
-    def end_session(history):
+    def end_session():
         """Reset to welcome screen."""
         return [], gr.update(visible=True), gr.update(visible=False)
 
@@ -798,7 +802,7 @@ with gr.Blocks(css=CSS, theme=gr.themes.Base(), title="Finley — Financial Advi
     # End session
     end_btn.click(
         end_session,
-        inputs=[chat_history],
+        inputs=[],
         outputs=[chat_history, welcome_col, chat_col],
     )
 
