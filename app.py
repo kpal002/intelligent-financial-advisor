@@ -150,44 +150,53 @@ footer, .footer { display: none !important; }
     margin: 0 !important;
 }
 
-/* ── Quick-prompt buttons — equal height, matching site font ────── */
-/* Row stretches all columns to the same height */
+/* ── Quick-prompt buttons — equal height, reference-style beige ─── */
 #welcome-col .gap { align-items: stretch !important; }
 
 .qbtn {
     display: flex !important;
     flex-direction: column !important;
     height: 100% !important;
-    padding: 0 !important;
+    padding: 0 4px !important;   /* small horizontal gutter between cards */
 }
-.qbtn > .block { padding: 0 !important; height: 100% !important; display: flex !important; flex-direction: column !important; }
-/* The actual button — white card, serif-adjacent weight, dark text */
+.qbtn > .block {
+    padding: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+/* Beige pill — matches the reference screenshot */
 .qbtn button {
-    background: #ffffff !important;
-    border: 1.5px solid var(--card-border) !important;
-    border-radius: 10px !important;
-    color: #2a1c14 !important;
-    font-size: 0.9rem !important;
+    background: #e8e1d8 !important;   /* warm beige, slightly darker than cream */
+    border: none !important;
+    border-radius: 16px !important;   /* generous rounding */
+    color: #3a2820 !important;        /* warm dark brown */
+    font-size: 0.95rem !important;
     font-family: var(--font-sans) !important;
-    font-weight: 500 !important;
+    font-weight: 400 !important;      /* normal weight — not bold */
     text-align: left !important;
-    padding: 18px 20px !important;
-    line-height: 1.5 !important;
+    padding: 20px 22px !important;
+    line-height: 1.55 !important;
     white-space: normal !important;
     flex: 1 !important;
     height: 100% !important;
-    min-height: 76px !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
-    transition: border-color 0.15s, background 0.15s !important;
+    min-height: 80px !important;
+    box-shadow: none !important;
+    transition: background 0.15s, color 0.15s !important;
 }
 .qbtn button:hover {
-    border-color: var(--accent) !important;
-    background: #fdf7f3 !important;
+    background: #ddd5ca !important;   /* slightly darker on hover */
     color: var(--accent) !important;
 }
 
-/* ── Chat screen — cream, no dark box ──────────────────────────── */
-#chat-col { flex: 1; display: flex; flex-direction: column; }
+/* ── Chat screen — fills entire main panel ──────────────────────── */
+#chat-col {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    height: 100% !important;
+}
 #chat-col > .block,
 #chat-col > div,
 #chat-col > .block > div {
@@ -195,9 +204,27 @@ footer, .footer { display: none !important; }
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+}
+/* Chatbot itself stretches to fill */
+#chatbot {
+    flex: 1 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+}
+#chatbot > div,
+#chatbot .wrap,
+#chatbot .bubble-wrap,
+#chatbot .scroll-hide {
+    flex: 1 !important;
+    height: 100% !important;
+    min-height: 0 !important;
 }
 
-/* Force cream on every layer of the chatbot component */
+/* Cream background on every chatbot layer */
 #chatbot,
 #chatbot > div,
 #chatbot .wrap,
@@ -209,7 +236,7 @@ footer, .footer { display: none !important; }
     box-shadow: none !important;
 }
 #chatbot .message-wrap,
-#chatbot .bubble-wrap { padding: 20px 48px !important; gap: 20px !important; }
+#chatbot .bubble-wrap { padding: 24px 56px !important; gap: 20px !important; }
 
 /* ── Bot bubble — same cream as page, no box ────────────────────── */
 #chatbot .bot,
@@ -751,7 +778,7 @@ with gr.Blocks(css=CSS, theme=gr.themes.Base(), title="Finley — Financial Advi
             with gr.Column(elem_id="chat-col", visible=False) as chat_col:
                 chatbot = gr.Chatbot(
                     elem_id="chatbot",
-                    height=480,
+                    height="100%",
                     show_label=False,
                     avatar_images=(None, "https://api.dicebear.com/7.x/bottts/svg?seed=finley"),
                     **_CHATBOT_KWARGS,
