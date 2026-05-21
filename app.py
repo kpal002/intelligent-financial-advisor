@@ -517,11 +517,16 @@ EXAMPLES = [
     ["Show me how Isolation Forest detects anomalies in my portfolio", "AAPL, MSFT", ""],
 ]
 
-# gr.themes.Soft is an explicitly light theme — inputs, blocks and panels are
-# all light by default regardless of system dark-mode preference.
-# We only override the focus/accent colour to match the terracotta palette.
-_theme = gr.themes.Soft().set(
+# Base theme lets our CSS control the page/chatbot background.
+# Only override input-specific tokens — never block_background_fill or
+# body_text_color, which would fight our CSS and hide the chat input.
+_theme = gr.themes.Base().set(
+    input_background_fill="#ede8e2",
+    input_background_fill_focus="#e8e1d8",
+    input_border_color="#ddd5c8",
     input_border_color_focus="#c4622d",
+    input_placeholder_color="#a09080",
+    input_shadow="none",
     input_shadow_focus="0 0 0 3px rgba(196,98,45,0.12)",
 )
 
@@ -546,6 +551,7 @@ with gr.Blocks(
             elem_id="chatbot",
             placeholder="Type a question or click an example below…",
             show_label=False,
+            height=450,   # fixed height keeps the input row on-screen
             avatar_images=(
                 None,
                 "https://api.dicebear.com/7.x/bottts/svg?seed=finley",
