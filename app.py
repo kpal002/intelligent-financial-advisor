@@ -169,13 +169,37 @@ footer, .footer, .svelte-footer { display: none !important; }
     border-radius: 8px !important;
     margin: 0 16px 8px !important;
 }
+/* Accordion header button */
+.gradio-chatinterface .additional-inputs-accordion > button,
+.gradio-chatinterface .additional-inputs-accordion button[aria-expanded] {
+    background: #f5f0ea !important;
+    color: #5a4a3a !important;
+}
+/* Input boxes — match page background, slightly darker border */
 .gradio-chatinterface .additional-inputs input,
-.gradio-chatinterface .additional-inputs textarea {
-    background: white !important;
-    border: 1px solid #e8ddd4 !important;
+.gradio-chatinterface .additional-inputs textarea,
+.gradio-chatinterface .additional-inputs .block,
+.gradio-chatinterface .additional-inputs .wrap,
+.gradio-chatinterface .additional-inputs [data-testid="textbox"] {
+    background: #ede8e2 !important;
+    border: 1px solid #ddd5c8 !important;
     border-radius: 6px !important;
-    color: #1c1c1c !important;
+    color: #3a2820 !important;
     font-size: 0.88rem !important;
+    box-shadow: none !important;
+}
+/* Label text above the inputs */
+.gradio-chatinterface .additional-inputs label,
+.gradio-chatinterface .additional-inputs .label-wrap span {
+    color: #7a5c4e !important;
+    font-size: 0.78rem !important;
+}
+/* Container blocks inside accordion */
+.gradio-chatinterface .additional-inputs .block {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 8px 0 !important;
 }
 """
 
