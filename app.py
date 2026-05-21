@@ -161,37 +161,11 @@ footer, .footer, .svelte-footer { display: none !important; }
 }
 .gradio-chatinterface .examples-row button:hover { background: #ddd5ca !important; color: #c4622d !important; }
 
-/* ── Override Gradio's CSS custom properties for all inputs ── */
-/* These variables propagate into Gradio's Svelte-scoped components  */
-/* where class selectors alone cannot reach.                         */
-:root {
-    --input-background-fill: #ede8e2 !important;
-    --input-background-fill-focus: #e8e1d8 !important;
-    --input-border-color: #ddd5c8 !important;
-    --input-border-color-focus: #c4622d !important;
-    --input-text-color: #3a2820 !important;
-    --input-placeholder-color: #a09080 !important;
-    --block-background-fill: #f5f0ea !important;
-    --block-border-color: #e8ddd4 !important;
-    --block-label-text-color: #7a5c4e !important;
-    --block-shadow: none !important;
-    --panel-background-fill: #f5f0ea !important;
-    --section-header-text-color: #5a4a3a !important;
-    --body-text-color: #3a2820 !important;
-    --body-text-color-subdued: #7a5c4e !important;
-}
-
-/* ── Additional inputs (portfolio settings) — fallback selectors ── */
-.gradio-chatinterface .additional-inputs input,
-.gradio-chatinterface .additional-inputs textarea {
-    background: #ede8e2 !important;
-    border: 1px solid #ddd5c8 !important;
-    color: #3a2820 !important;
-    box-shadow: none !important;
-}
+/* ── Additional inputs (portfolio settings) ───────────────── */
+/* Colors are controlled via gr.themes.Base().set() in Python —     */
+/* see _theme below. No CSS variable overrides needed here.         */
 .gradio-chatinterface .additional-inputs .block,
 .gradio-chatinterface .additional-inputs-accordion {
-    background: #f5f0ea !important;
     border: 1px solid #e8ddd4 !important;
     box-shadow: none !important;
 }
@@ -543,9 +517,27 @@ EXAMPLES = [
     ["Show me how Isolation Forest detects anomalies in my portfolio", "AAPL, MSFT", ""],
 ]
 
+# Use theme.set() — the only reliable way to control Gradio 5 input colours.
+# CSS overrides lose to Svelte-scoped theme variables; theme.set() wins.
+_theme = gr.themes.Base().set(
+    input_background_fill="#ede8e2",
+    input_background_fill_focus="#e8e1d8",
+    input_border_color="#ddd5c8",
+    input_border_color_focus="#c4622d",
+    input_placeholder_color="#a09080",
+    input_shadow="none",
+    block_background_fill="#f5f0ea",
+    block_border_color="#e8ddd4",
+    block_label_text_color="#7a5c4e",
+    block_shadow="none",
+    panel_background_fill="#f5f0ea",
+    body_text_color="#3a2820",
+    body_text_color_subdued="#7a5c4e",
+)
+
 with gr.Blocks(
     css=CSS,
-    theme=gr.themes.Base(),
+    theme=_theme,
     title="Finley — Financial Advisor",
     analytics_enabled=False,
 ) as demo:
