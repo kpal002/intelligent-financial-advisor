@@ -150,30 +150,20 @@ footer, .footer { display: none !important; }
     margin: 0 !important;
 }
 
-/* ── Quick-prompt buttons — equal height, reference-style beige ─── */
+/* ── Quick-prompt buttons — beige pill, matching reference ──────── */
 #welcome-col .gap { align-items: stretch !important; }
+.qbtn { display: flex !important; flex-direction: column !important; height: 100% !important; padding: 0 4px !important; }
+.qbtn > .block { padding: 0 !important; height: 100% !important; display: flex !important; flex-direction: column !important; }
 
-.qbtn {
-    display: flex !important;
-    flex-direction: column !important;
-    height: 100% !important;
-    padding: 0 4px !important;   /* small horizontal gutter between cards */
-}
-.qbtn > .block {
-    padding: 0 !important;
-    height: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-}
-/* Beige pill — matches the reference screenshot */
-.qbtn button {
-    background: #e8e1d8 !important;   /* warm beige, slightly darker than cream */
+/* Use #welcome-col button — beats Gradio Svelte-scoped specificity */
+#welcome-col button {
+    background: #e8e1d8 !important;
     border: none !important;
-    border-radius: 16px !important;   /* generous rounding */
-    color: #3a2820 !important;        /* warm dark brown */
+    border-radius: 16px !important;
+    color: #3a2820 !important;
     font-size: 0.95rem !important;
     font-family: var(--font-sans) !important;
-    font-weight: 400 !important;      /* normal weight — not bold */
+    font-weight: 400 !important;
     text-align: left !important;
     padding: 20px 22px !important;
     line-height: 1.55 !important;
@@ -182,20 +172,21 @@ footer, .footer { display: none !important; }
     height: 100% !important;
     min-height: 80px !important;
     box-shadow: none !important;
-    transition: background 0.15s, color 0.15s !important;
+    transition: background 0.15s !important;
+    width: 100% !important;
 }
-.qbtn button:hover {
-    background: #ddd5ca !important;   /* slightly darker on hover */
+#welcome-col button:hover {
+    background: #ddd5ca !important;
     color: var(--accent) !important;
 }
 
-/* ── Chat screen — fills entire main panel ──────────────────────── */
+/* ── Chat screen — viewport-height fill, no page expansion ─────── */
+/* The chatbot uses calc(100vh - input_bar) so it never overflows */
 #chat-col {
     flex: 1 !important;
     display: flex !important;
     flex-direction: column !important;
-    min-height: 0 !important;
-    height: 100% !important;
+    overflow: hidden !important;
 }
 #chat-col > .block,
 #chat-col > div,
@@ -204,24 +195,20 @@ footer, .footer { display: none !important; }
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    min-height: 0 !important;
+    overflow: hidden !important;
 }
-/* Chatbot itself stretches to fill */
+/* chatbot fills remaining height; input bar is ~68 px */
 #chatbot {
-    flex: 1 !important;
-    min-height: 0 !important;
-    height: 100% !important;
+    height: calc(100vh - 68px) !important;
+    max-height: calc(100vh - 68px) !important;
+    overflow: hidden !important;
 }
 #chatbot > div,
 #chatbot .wrap,
 #chatbot .bubble-wrap,
 #chatbot .scroll-hide {
-    flex: 1 !important;
     height: 100% !important;
-    min-height: 0 !important;
+    overflow-y: auto !important;
 }
 
 /* Cream background on every chatbot layer */
@@ -778,7 +765,7 @@ with gr.Blocks(css=CSS, theme=gr.themes.Base(), title="Finley — Financial Advi
             with gr.Column(elem_id="chat-col", visible=False) as chat_col:
                 chatbot = gr.Chatbot(
                     elem_id="chatbot",
-                    height="100%",
+                    height=600,
                     show_label=False,
                     avatar_images=(None, "https://api.dicebear.com/7.x/bottts/svg?seed=finley"),
                     **_CHATBOT_KWARGS,
