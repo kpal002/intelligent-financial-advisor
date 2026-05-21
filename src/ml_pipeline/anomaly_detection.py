@@ -14,12 +14,10 @@ Use cases:
 """
 
 import logging
-import time
 import pandas as pd
 from typing import List
-from datetime import datetime, timedelta
 
-import yfinance as yf
+from .data_utils import download_close_prices
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 
@@ -48,36 +46,13 @@ class AnomalyDetector:
     def fetch_data(self) -> pd.DataFrame:
         """Download historical prices and compute daily returns.
 
-        Retries up to 3 times with exponential backoff on empty results.
+        Uses :func:`download_close_prices` for rate-limit-safe downloading
+        with exponential-backoff retries.
 
         Raises:
             RuntimeError: if data is still empty after all retries.
         """
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=self.lookback_days)
-
-        prices = None
-        for attempt in range(3):
-            raw = yf.download(
-                self.symbols, start=start_date, end=end_date, progress=False
-            )
-            prices = raw['Close'] if 'Close' in raw.columns else raw
-            if not prices.empty:
-                break
-            if attempt < 2:
-                wait = 2 ** (attempt + 1)
-                logger.warning(
-                    f"[AnomalyDetector] Empty download for {self.symbols} — "
-                    f"rate-limited? Retrying in {wait}s…"
-                )
-                time.sleep(wait)
-
-        if prices is None or prices.empty:
-            raise RuntimeError(
-                f"No price data returned for {self.symbols} after 3 attempts. "
-                "Yahoo Finance may be rate-limiting — please wait a minute and retry."
-            )
-
+        prices = download_close_prices(self.symbols, self.lookback_days)
         self.returns_df = prices.pct_change().dropna()
         return self.returns_df
 

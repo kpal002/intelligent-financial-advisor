@@ -499,7 +499,7 @@ def call_advisor(query: str, syms_raw: str, wts_raw: str) -> str:
 
 def respond(
     message: str,
-    history: list,
+    _history: list,   # gr.ChatInterface passes history; we don't need it
     symbols: str,
     weights: str,
 ) -> str:
