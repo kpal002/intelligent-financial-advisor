@@ -9,8 +9,6 @@ from __future__ import annotations  # list[str]/dict[k,v] hints on Python < 3.10
 
 import gradio as gr
 
-_GRADIO_MAJOR = int(gr.__version__.split(".")[0])
-
 # ── Advisor bootstrap ──────────────────────────────────────────────────────────
 try:
     from src.llm.orchestrator import FinancialAdvisorGraph
@@ -287,46 +285,43 @@ SIDEBAR_HTML = """
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  WELCOME PLACEHOLDER  — shown inside the chatbot when history is empty
+#  WELCOME SCREEN  — gr.HTML component (renders onclick/script correctly)
+#  Chatbot placeholder is plain text; gr.Chatbot sanitises arbitrary HTML.
 # ══════════════════════════════════════════════════════════════════════════════
 
-_live_badge = (
-    '<span style="display:inline-flex;align-items:center;gap:6px;'
-    'background:#1e3a1e;border:1px solid #2d5a2d;border-radius:20px;'
-    'padding:4px 12px;font-size:0.72rem;color:#7ec87e;">'
-    '<span style="width:7px;height:7px;border-radius:50%;background:#4caf50;display:inline-block;"></span>'
-    'Ready to analyze</span>'
-    if LIVE else
-    '<span style="display:inline-flex;align-items:center;gap:6px;'
-    'background:#3a2a1a;border:1px solid #5a3a1a;border-radius:20px;'
-    'padding:4px 12px;font-size:0.72rem;color:#c49a4a;">'
-    '<span style="width:7px;height:7px;border-radius:50%;background:#c49a4a;display:inline-block;"></span>'
-    'Demo mode — add ANTHROPIC_API_KEY to enable live analysis</span>'
-)
+_badge_color  = ("#1e3a1e", "#2d5a2d", "#4caf50", "#7ec87e", "Ready to analyze") if LIVE \
+    else        ("#3a2a1a", "#5a3a1a", "#c49a4a", "#c49a4a", "Demo mode — add ANTHROPIC_API_KEY")
 
-WELCOME_PLACEHOLDER = f"""
-<div style="
+WELCOME_HTML = f"""
+<div id="finley-welcome" style="
+    background:#f5f0ea;
     display:flex; flex-direction:column; align-items:center;
-    padding:48px 32px 32px;
+    padding:48px 32px 28px;
     font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-    min-height:100%; background:#f5f0ea;
 ">
 
   <!-- Status badge -->
-  <div style="margin-bottom:32px;">{_live_badge}</div>
+  <div style="margin-bottom:28px;">
+    <span style="display:inline-flex;align-items:center;gap:6px;
+                 background:{_badge_color[0]};border:1px solid {_badge_color[1]};
+                 border-radius:20px;padding:4px 14px;font-size:0.72rem;color:{_badge_color[3]};">
+      <span style="width:7px;height:7px;border-radius:50%;background:{_badge_color[2]};display:inline-block;"></span>
+      {_badge_color[4]}
+    </span>
+  </div>
 
   <!-- Headline -->
-  <h1 style="
-      font-size:2.6rem; font-weight:700; color:#1c1c1c;
-      margin:0 0 12px; font-family:Georgia,'Times New Roman',serif;
-      letter-spacing:-0.02em; text-align:center;
-  ">Hello, I'm Finley.</h1>
-  <p style="font-size:1rem;color:#666;line-height:1.7;text-align:center;margin:0 0 36px;max-width:480px;">
+  <h1 style="font-size:2.5rem;font-weight:700;color:#1c1c1c;margin:0 0 10px;
+             font-family:Georgia,serif;letter-spacing:-0.02em;text-align:center;">
+    Hello, I'm Finley.
+  </h1>
+  <p style="font-size:1rem;color:#666;line-height:1.7;text-align:center;
+            margin:0 0 32px;max-width:460px;">
     Today is a great day to review your portfolio!<br>Where shall we begin?
   </p>
 
   <!-- Mode cards -->
-  <div style="display:flex;gap:14px;max-width:720px;width:100%;margin:0 0 28px;flex-wrap:wrap;">
+  <div style="display:flex;gap:14px;max-width:720px;width:100%;flex-wrap:wrap;">
 
     <div style="flex:1;min-width:180px;background:white;border:1.5px solid #e8ddd4;
                 border-radius:12px;padding:22px 18px;cursor:pointer;transition:all 0.2s;"
@@ -369,24 +364,37 @@ WELCOME_PLACEHOLDER = f"""
 
   </div>
 
-  <div style="font-size:0.82rem;color:#aaa;margin-bottom:4px;">
-    or use the quick prompts below ↓
-  </div>
+  <p style="font-size:0.82rem;color:#bbb;margin:20px 0 0;">or use the quick prompts below ↓</p>
 
 </div>
 
 <script>
+// Fill the ChatInterface textarea when a card is clicked
 function finleyFill(text) {{
-  /* Find the visible, editable textarea — works with gr.ChatInterface */
   const ta = Array.from(document.querySelectorAll('textarea'))
                .find(t => t.offsetParent !== null && !t.readOnly && !t.disabled);
-  if (ta) {{
-    const nativeSet = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
-    nativeSet.call(ta, text);
-    ta.dispatchEvent(new Event('input', {{ bubbles: true }}));
-    ta.focus();
-  }}
+  if (!ta) return;
+  const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+  setter.call(ta, text);
+  ta.dispatchEvent(new Event('input', {{bubbles: true}}));
+  ta.focus();
 }}
+
+// Hide welcome section once the first chat message appears
+(function() {{
+  function hideWelcome() {{
+    const el = document.getElementById('finley-welcome');
+    if (el) el.style.display = 'none';
+  }}
+  const obs = new MutationObserver(function() {{
+    const bot = document.querySelector('#chatbot .message, #chatbot [data-testid="bot"], #chatbot [data-testid="user"]');
+    if (bot) {{ hideWelcome(); obs.disconnect(); }}
+  }});
+  document.addEventListener('DOMContentLoaded', function() {{
+    const root = document.getElementById('chatbot') || document.body;
+    obs.observe(root, {{childList: true, subtree: true}});
+  }});
+}})();
 </script>
 """
 
@@ -517,10 +525,6 @@ EXAMPLES = [
     ["Show me how Isolation Forest detects anomalies in my portfolio", "AAPL, MSFT", ""],
 ]
 
-_chatbot_kwargs: dict = {}
-if _GRADIO_MAJOR < 6:
-    _chatbot_kwargs["type"] = "messages"
-
 with gr.Blocks(
     css=CSS,
     theme=gr.themes.Base(),
@@ -531,18 +535,21 @@ with gr.Blocks(
     # ── Fixed sidebar overlay — rendered at DOM root, styled with inline CSS ──
     gr.HTML(SIDEBAR_HTML)
 
+    # ── Welcome screen (rendered via gr.HTML so onclick/script are preserved) ──
+    gr.HTML(WELCOME_HTML)
+
     # ── Main chat interface ────────────────────────────────────────────────────
     gr.ChatInterface(
         fn=respond,
+        type="messages",          # set on ChatInterface to silence UserWarning
         chatbot=gr.Chatbot(
             elem_id="chatbot",
-            placeholder=WELCOME_PLACEHOLDER,
+            placeholder="Type a question or click an example below…",
             show_label=False,
             avatar_images=(
                 None,
                 "https://api.dicebear.com/7.x/bottts/svg?seed=finley",
             ),
-            **_chatbot_kwargs,
         ),
         additional_inputs=[
             gr.Textbox(
@@ -559,6 +566,7 @@ with gr.Blocks(
             "⚙️  Portfolio Settings", open=False
         ),
         examples=EXAMPLES,
+        cache_examples=False,     # prevent running full ARIMA pipeline at startup
         title="",
     )
 
