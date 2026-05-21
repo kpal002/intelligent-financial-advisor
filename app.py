@@ -38,9 +38,9 @@ CSS = """
 /* ── Variables ─────────────────────────────────────────────────── */
 :root {
     --cream:          #f5f0ea;
-    --sidebar:        #1c1c1c;
-    --sidebar-border: #2e2e2e;
-    --sidebar-hover:  #262626;
+    --sidebar:        #241410;   /* deep coffee brown — not pure black */
+    --sidebar-border: #3a1f12;
+    --sidebar-hover:  #2e190e;
     --accent:         #c4622d;
     --accent-hover:   #a8521f;
     --card-bg:        #ffffff;
@@ -49,22 +49,27 @@ CSS = """
     --text-dark:      #1c1c1c;
     --text-mid:       #555;
     --text-light:     #999;
-    --sb-text:        #e8e0d6;
-    --sb-muted:       #666;
+    --sb-text:        #e8ddd4;
+    --sb-muted:       #7a5c4e;
     --font-serif:     Georgia, 'Times New Roman', serif;
     --font-sans:      -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* ── Gradio shell reset ─────────────────────────────────────────── */
-.gradio-container {
+/* ── Aggressive Gradio shell reset — flush edge-to-edge ─────────── */
+html, body { margin: 0 !important; padding: 0 !important; }
+.gradio-container,
+.gradio-container > .main,
+.gradio-container > .main > .wrap,
+.gradio-container > .main > .wrap > .contain {
     max-width: 100% !important;
+    width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
+    border-radius: 0 !important;
     background: var(--cream) !important;
     min-height: 100vh;
 }
-footer, .footer { display: none !important; }
-.contain { padding: 0 !important; }
+footer, .footer, .svelte-1ipelgc { display: none !important; }
 
 /* ── Two-column shell ───────────────────────────────────────────── */
 #app-row {
@@ -72,41 +77,53 @@ footer, .footer { display: none !important; }
     flex-direction: row !important;
     min-height: 100vh;
     gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
-#app-row > .block { padding: 0 !important; }
+#app-row > .block,
+#app-row > div { padding: 0 !important; gap: 0 !important; }
 
-/* ── Sidebar column ─────────────────────────────────────────────── */
+/* ── Sidebar column — flush left, coffee brown ──────────────────── */
 #sidebar-col {
     min-width: 250px !important;
     max-width: 250px !important;
+    width: 250px !important;
     background: var(--sidebar) !important;
     border-right: 1px solid var(--sidebar-border) !important;
     padding: 0 !important;
+    margin: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
+    flex-shrink: 0 !important;
 }
-#sidebar-col > .block {
+#sidebar-col > .block,
+#sidebar-col > div {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
+    margin: 0 !important;
 }
 
 /* ── Main column ────────────────────────────────────────────────── */
 #main-col {
     flex: 1 !important;
+    min-width: 0 !important;
     background: var(--cream) !important;
     display: flex !important;
     flex-direction: column !important;
     padding: 0 !important;
+    margin: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
 }
-#main-col > .block {
+#main-col > .block,
+#main-col > div {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
+    margin: 0 !important;
 }
 
 /* ── Welcome screen ─────────────────────────────────────────────── */
@@ -117,26 +134,98 @@ footer, .footer { display: none !important; }
     align-items: center;
     padding: 0 0 32px;
 }
-#welcome-col > .block {
+#welcome-col > .block,
+#welcome-col > div {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     width: 100%;
+    padding: 0 !important;
 }
 
-/* ── Chat screen ────────────────────────────────────────────────── */
+/* ── Quick-prompt buttons — equal height ────────────────────────── */
+/* Make the row's columns stretch to the same height */
+#welcome-col .gap,
+#welcome-col > .block > .gap { align-items: stretch !important; }
+
+/* Each .qbtn wrapper stretches; button fills 100% of that height */
+.qbtn {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+}
+.qbtn button {
+    background: white !important;
+    border: 1.5px solid var(--card-border) !important;
+    border-radius: 10px !important;
+    color: #333 !important;
+    font-size: 0.875rem !important;
+    font-family: var(--font-sans) !important;
+    text-align: left !important;
+    padding: 16px 18px !important;
+    line-height: 1.45 !important;
+    white-space: normal !important;
+    flex: 1 !important;           /* fill the wrapper height */
+    height: 100% !important;
+    min-height: 72px !important;  /* floor so they're never too short */
+}
+.qbtn button:hover {
+    border-color: var(--accent) !important;
+    background: #fdf8f5 !important;
+    color: #1c1c1c !important;
+}
+
+/* ── Chat screen — cream background, no dark box ────────────────── */
 #chat-col { flex: 1; display: flex; flex-direction: column; }
-#chat-col > .block {
+#chat-col > .block,
+#chat-col > div {
     background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+/* Chatbot container — force cream so Gradio's dark default is gone */
+#chatbot,
+#chatbot > div,
+#chatbot .wrap,
+#chatbot .bubble-wrap,
+#chatbot .scroll-hide,
+div[id="chatbot"] {
+    background: var(--cream) !important;
     border: none !important;
     box-shadow: none !important;
 }
 
-/* Chatbot bubble styles */
-#chatbot { background: transparent !important; border: none !important; }
-#chatbot .message-wrap { padding: 24px 40px; gap: 20px; }
-#chatbot .bot { background: white !important; border: 1px solid var(--card-border) !important; border-radius: 12px !important; }
-#chatbot .user { background: var(--accent) !important; color: white !important; border-radius: 12px !important; }
+/* Message area padding */
+#chatbot .message-wrap,
+#chatbot .bubble-wrap { padding: 20px 40px !important; gap: 18px !important; }
+
+/* Bot bubble — white card on cream */
+#chatbot .bot,
+#chatbot [data-testid="bot"],
+#chatbot .message.bot {
+    background: #ffffff !important;
+    border: 1px solid var(--card-border) !important;
+    border-radius: 12px !important;
+    color: var(--text-dark) !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+}
+
+/* User bubble — accent colour */
+#chatbot .user,
+#chatbot [data-testid="user"],
+#chatbot .message.user {
+    background: var(--accent) !important;
+    color: white !important;
+    border-radius: 12px !important;
+    border: none !important;
+}
+
+/* Text inside bubbles */
+#chatbot .message p,
+#chatbot .message span,
+#chatbot .prose { color: inherit !important; }
 
 /* ── Input bar ──────────────────────────────────────────────────── */
 #input-bar {
@@ -147,7 +236,8 @@ footer, .footer { display: none !important; }
     align-items: center;
     gap: 10px;
 }
-#input-bar > .block {
+#input-bar > .block,
+#input-bar > div {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -157,6 +247,7 @@ footer, .footer { display: none !important; }
     border: 1.5px solid var(--card-border) !important;
     border-radius: 10px !important;
     background: #fdfaf7 !important;
+    color: var(--text-dark) !important;
     font-family: var(--font-sans) !important;
     font-size: 0.92rem !important;
     padding: 12px 16px !important;
@@ -198,26 +289,6 @@ footer, .footer { display: none !important; }
     color: var(--accent) !important;
 }
 
-/* ── Quick-prompt buttons ───────────────────────────────────────── */
-.qbtn button {
-    background: white !important;
-    border: 1.5px solid var(--card-border) !important;
-    border-radius: 10px !important;
-    color: #333 !important;
-    font-size: 0.875rem !important;
-    font-family: var(--font-sans) !important;
-    text-align: left !important;
-    padding: 14px 18px !important;
-    line-height: 1.4 !important;
-    white-space: normal !important;
-    height: auto !important;
-    min-height: 56px !important;
-}
-.qbtn button:hover {
-    border-color: var(--accent) !important;
-    background: #fdf8f5 !important;
-}
-
 /* ── Session footer ─────────────────────────────────────────────── */
 #session-footer {
     display: flex;
@@ -228,7 +299,8 @@ footer, .footer { display: none !important; }
     color: var(--text-light);
     font-family: var(--font-sans);
 }
-#session-footer > .block {
+#session-footer > .block,
+#session-footer > div {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -252,23 +324,24 @@ footer, .footer { display: none !important; }
 /* ── Portfolio sidebar inputs ───────────────────────────────────── */
 #portfolio-section textarea,
 #portfolio-section input {
-    background: #262626 !important;
-    border: 1px solid #3a3a3a !important;
+    background: #2e1a0e !important;
+    border: 1px solid #4a2a18 !important;
     border-radius: 8px !important;
-    color: #d4ccc4 !important;
+    color: #e0d4ca !important;
     font-family: var(--font-sans) !important;
     font-size: 0.82rem !important;
 }
 #portfolio-section textarea::placeholder,
-#portfolio-section input::placeholder { color: #666 !important; }
+#portfolio-section input::placeholder { color: #7a5c4e !important; }
 #portfolio-section label span {
-    color: #888 !important;
+    color: #9a7060 !important;
     font-family: var(--font-sans) !important;
     font-size: 0.68rem !important;
     text-transform: uppercase !important;
     letter-spacing: 0.1em !important;
 }
-#portfolio-section .block {
+#portfolio-section .block,
+#portfolio-section > div {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -298,7 +371,7 @@ footer, .footer { display: none !important; }
 
 SIDEBAR_HTML = """
 <div style="
-    background:#1c1c1c;
+    background:#241410;
     min-height:100vh;
     display:flex;
     flex-direction:column;
@@ -306,40 +379,40 @@ SIDEBAR_HTML = """
 ">
 
   <!-- Logo block -->
-  <div style="padding:28px 20px 18px; border-bottom:1px solid #2e2e2e;">
-    <div style="font-size:1.5rem; font-weight:700; color:#f5f0ea; letter-spacing:-0.02em; font-family:Georgia,serif;">
+  <div style="padding:28px 20px 18px; border-bottom:1px solid #3a1f12;">
+    <div style="font-size:1.5rem; font-weight:700; color:#f0e8e0; letter-spacing:-0.02em; font-family:Georgia,serif;">
       Finley.
     </div>
-    <div style="font-size:0.65rem; color:#666; letter-spacing:0.14em; text-transform:uppercase; margin-top:3px;">
+    <div style="font-size:0.65rem; color:#7a5c4e; letter-spacing:0.14em; text-transform:uppercase; margin-top:3px;">
       Financial Advisor
     </div>
   </div>
 
   <!-- Recent sessions label -->
-  <div style="font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#555; padding:20px 20px 6px;">
+  <div style="font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#6a4a3a; padding:20px 20px 6px;">
     Recent Analyses
   </div>
-  <div style="font-size:0.78rem; color:#555; padding:2px 20px 16px; line-height:1.5;">
+  <div style="font-size:0.78rem; color:#6a4a3a; padding:2px 20px 16px; line-height:1.5;">
     Complete an analysis to see your history here.
   </div>
 
   <!-- Portfolio Health tracker -->
-  <div style="font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#555; padding:8px 20px 8px;">
+  <div style="font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#6a4a3a; padding:8px 20px 8px;">
     Portfolio Health
   </div>
-  <div style="margin:0 16px 12px; background:#242424; border-radius:8px; padding:14px;">
-    <div style="font-size:0.65rem; color:#666; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;">
+  <div style="margin:0 16px 12px; background:#2e1a0e; border-radius:8px; padding:14px; border:1px solid #3a1f12;">
+    <div style="font-size:0.65rem; color:#7a5c4e; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;">
       Last Analyzed
     </div>
-    <div style="font-size:0.82rem; color:#888;">—</div>
+    <div style="font-size:0.82rem; color:#a07060;">—</div>
   </div>
 
   <!-- Market snapshot -->
-  <div style="font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#555; padding:8px 20px 8px;">
+  <div style="font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#6a4a3a; padding:8px 20px 8px;">
     Market Data
   </div>
-  <div style="margin:0 16px 12px; background:#242424; border-radius:8px; padding:14px;">
-    <div style="font-size:0.65rem; color:#666; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;">
+  <div style="margin:0 16px 12px; background:#2e1a0e; border-radius:8px; padding:14px; border:1px solid #3a1f12;">
+    <div style="font-size:0.65rem; color:#7a5c4e; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;">
       Source
     </div>
     <div style="font-size:0.82rem; color:#9bc49b; display:flex; align-items:center; gap:6px;">
@@ -349,25 +422,25 @@ SIDEBAR_HTML = """
   </div>
 
   <!-- Stats -->
-  <div style="font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#555; padding:8px 20px 8px;">
+  <div style="font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#6a4a3a; padding:8px 20px 8px;">
     Activity
   </div>
   <div style="padding:0 20px 8px; display:flex; flex-direction:column; gap:8px;">
-    <div style="display:flex;align-items:center;gap:10px;font-size:0.78rem;color:#666;">
+    <div style="display:flex;align-items:center;gap:10px;font-size:0.78rem;color:#6a4a3a;">
       <span>💬</span>
-      <span style="color:#e8e0d6;font-weight:600;">—</span>
+      <span style="color:#e0d4ca;font-weight:600;">—</span>
       <span>analyses run</span>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;font-size:0.78rem;color:#666;">
+    <div style="display:flex;align-items:center;gap:10px;font-size:0.78rem;color:#6a4a3a;">
       <span>📊</span>
-      <span style="color:#e8e0d6;font-weight:600;">—</span>
+      <span style="color:#e0d4ca;font-weight:600;">—</span>
       <span>portfolios evaluated</span>
     </div>
   </div>
 
   <!-- Privacy notice -->
-  <div style="margin:auto 0 0; padding:14px 16px 0; border-top:1px solid #2e2e2e;">
-    <div style="font-size:0.7rem; color:#444; line-height:1.55; padding:10px 4px;">
+  <div style="margin:auto 0 0; padding:14px 16px 0; border-top:1px solid #3a1f12;">
+    <div style="font-size:0.7rem; color:#5a3a2a; line-height:1.55; padding:10px 4px;">
       🔒 Progress is saved privately on this device. Finley never collects or stores your identity.
     </div>
   </div>
@@ -377,18 +450,18 @@ SIDEBAR_HTML = """
     <a href="https://github.com/kpal002/intelligent-financial-advisor"
        target="_blank" style="text-decoration:none;">
       <div style="
-          border:1px solid #333; border-radius:7px; color:#777; padding:9px 14px;
+          border:1px solid #3a1f12; border-radius:7px; color:#7a5c4e; padding:9px 14px;
           font-size:0.78rem; cursor:pointer; display:flex; align-items:center; gap:8px;
           transition:all 0.15s;
-      " onmouseover="this.style.color='#ccc';this.style.borderColor='#555'"
-         onmouseout="this.style.color='#777';this.style.borderColor='#333'">
+      " onmouseover="this.style.color='#c4a090';this.style.borderColor='#6a4a3a'"
+         onmouseout="this.style.color='#7a5c4e';this.style.borderColor='#3a1f12'">
         ⭐ &nbsp; View on GitHub
       </div>
     </a>
   </div>
 
-  <div style="text-align:center;font-size:0.65rem;color:#383838;padding:0 0 14px;font-family:sans-serif;">
-    © 2024 Kuntal Pal
+  <div style="text-align:center;font-size:0.65rem;color:#4a2a1a;padding:0 0 14px;font-family:sans-serif;">
+    © 2025 Kuntal Pal
   </div>
 </div>
 """
