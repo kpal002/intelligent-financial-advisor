@@ -6,6 +6,7 @@ Weights are passed in so the same class works for any portfolio composition.
 """
 
 import logging
+import time
 import numpy as np
 import pandas as pd
 from typing import Dict, List
@@ -37,13 +38,39 @@ class PortfolioRiskAnalyzer:
         """
         Fetch closing prices and compute daily percentage returns.
 
+        Retries up to 3 times with exponential backoff on empty results.
+
         Returns:
             DataFrame of daily returns, one column per symbol
+
+        Raises:
+            RuntimeError: if data is still empty after all retries.
         """
         end_date = datetime.now()
         start_date = end_date - timedelta(days=self.lookback_days)
 
-        prices = yf.download(self.symbols, start=start_date, end=end_date, progress=False)['Close']
+        prices = None
+        for attempt in range(3):
+            raw = yf.download(
+                self.symbols, start=start_date, end=end_date, progress=False
+            )
+            prices = raw['Close'] if 'Close' in raw.columns else raw
+            if not prices.empty:
+                break
+            if attempt < 2:
+                wait = 2 ** (attempt + 1)
+                logger.warning(
+                    f"[RiskAnalyzer] Empty download for {self.symbols} — "
+                    f"rate-limited? Retrying in {wait}s…"
+                )
+                time.sleep(wait)
+
+        if prices is None or prices.empty:
+            raise RuntimeError(
+                f"No price data returned for {self.symbols} after 3 attempts. "
+                "Yahoo Finance may be rate-limiting — please wait a minute and retry."
+            )
+
         self.price_df = prices
         self.returns_df = prices.pct_change().dropna()
 

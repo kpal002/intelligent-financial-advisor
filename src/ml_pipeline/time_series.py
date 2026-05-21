@@ -15,6 +15,8 @@ import pandas as pd
 from typing import Tuple
 from datetime import datetime, timedelta
 
+import time
+
 import yfinance as yf
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.arima.model import ARIMA
@@ -50,14 +52,42 @@ class TimeSeriesForecaster:
         """
         Download OHLCV data from Yahoo Finance and add a Returns column.
 
+        Retries up to 3 times with exponential backoff if Yahoo Finance
+        returns an empty DataFrame (e.g. due to rate-limiting).
+
         Returns:
             DataFrame with columns: Open, High, Low, Close, Volume, Returns
+
+        Raises:
+            RuntimeError: if data is still empty after all retries.
         """
         end_date = datetime.now()
         start_date = end_date - timedelta(days=self.lookback_days)
 
-        logger.info(f"Fetching {self.symbol} from {start_date.date()} to {end_date.date()}")
-        self.data = yf.download(self.symbol, start=start_date, end=end_date, progress=False)
+        for attempt in range(3):
+            logger.info(
+                f"Fetching {self.symbol} from {start_date.date()} to {end_date.date()} "
+                f"(attempt {attempt + 1}/3)"
+            )
+            self.data = yf.download(
+                self.symbol, start=start_date, end=end_date, progress=False
+            )
+            if not self.data.empty:
+                break
+            if attempt < 2:
+                wait = 2 ** (attempt + 1)   # 2 s, 4 s
+                logger.warning(
+                    f"[{self.symbol}] Empty download — Yahoo Finance may be rate-limiting. "
+                    f"Retrying in {wait}s…"
+                )
+                time.sleep(wait)
+
+        if self.data is None or self.data.empty:
+            raise RuntimeError(
+                f"No price data returned for {self.symbol} after 3 attempts. "
+                "Yahoo Finance is rate-limiting this IP — please wait a minute and retry."
+            )
+
         self.data['Returns'] = self.data['Close'].pct_change()
         return self.data
 
