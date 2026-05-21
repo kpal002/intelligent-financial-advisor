@@ -40,7 +40,7 @@ jobs:
 
     - name: Lint — pylint (informational, does not fail the build)
       run: |
-        pylint src/ app.py tests/ \
+        pylint src/ main.py tests/ \
           --fail-under=6.0 \
           --output-format=text \
           || true
