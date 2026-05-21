@@ -67,7 +67,7 @@ def _parse_portfolio(
 
 
 # ── Demo response ──────────────────────────────────────────────────────────────
-def _demo_response(query: str, symbols: list[str]) -> str:  # noqa: ARG001
+def _demo_response(_query: str, symbols: list[str]) -> str:
     sym_str = " and ".join(symbols) if symbols else "your portfolio"
     s0 = symbols[0] if symbols else "AAPL"
     s1 = symbols[1] if len(symbols) > 1 else "MSFT"
