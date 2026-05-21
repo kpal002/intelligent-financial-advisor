@@ -206,13 +206,11 @@ class PortfolioRiskAnalyzer:
         if self.returns_df is None:
             self.fetch_returns()
 
-        bench_data = yf.download(
-            benchmark,
-            start=self.returns_df.index[0],
-            end=self.returns_df.index[-1],
-            progress=False
+        bench_prices = download_close_prices(
+            [benchmark],
+            lookback_days=self.lookback_days,
         )
-        bench_returns = bench_data['Close'].pct_change().dropna()
+        bench_returns = bench_prices.squeeze().pct_change().dropna()
 
         common = self.returns_df.index.intersection(bench_returns.index)
         cov = np.cov(self.returns_df.loc[common, symbol], bench_returns.loc[common])[0, 1]
