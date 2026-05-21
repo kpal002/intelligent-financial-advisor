@@ -2,10 +2,16 @@
 Finley — FastAPI backend
 Serves the static chat UI and exposes a /chat endpoint that calls the
 multi-agent advisor pipeline (or returns a demo response if no API key).
+
+Multi-turn memory:
+  - First message (empty history) → full ML pipeline (ARIMA, VaR, Markowitz)
+  - Follow-up messages → Claude answers directly with conversation history +
+    portfolio context, skipping the expensive data pipeline
 """
 from __future__ import annotations
 
 from pathlib import Path
+from typing import List
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -15,6 +21,8 @@ from pydantic import BaseModel
 # ── Advisor bootstrap ──────────────────────────────────────────────────────────
 try:
     from src.llm.orchestrator import FinancialAdvisorGraph
+    from langchain_anthropic import ChatAnthropic
+    from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
     _advisor_singleton = None
 
     def get_advisor() -> FinancialAdvisorGraph:
@@ -22,6 +30,8 @@ try:
         if _advisor_singleton is None:
             _advisor_singleton = FinancialAdvisorGraph()
         return _advisor_singleton
+
+    _llm = ChatAnthropic(model="claude-3-5-haiku-20241022", max_tokens=2048)
 
     LIVE = True
 except Exception as _e:
@@ -33,10 +43,16 @@ app = FastAPI(title="Finley Financial Advisor", docs_url=None, redoc_url=None)
 
 
 # ── Request / Response models ──────────────────────────────────────────────────
+class HistoryMessage(BaseModel):
+    role: str    # "user" | "assistant"
+    content: str
+
+
 class ChatRequest(BaseModel):
     message: str
     symbols: str = "AAPL, MSFT"
     weights: str = ""
+    history: List[HistoryMessage] = []
 
 
 class ChatResponse(BaseModel):
@@ -112,6 +128,33 @@ synthesises this report.*
 """
 
 
+# ── Follow-up handler (no ML pipeline, Claude answers from history) ────────────
+def _followup_response(req: ChatRequest, symbols: list[str]) -> str:
+    """
+    Answer a follow-up question using Claude with the full conversation history.
+    Skips the expensive ML pipeline — Claude already has the prior analysis in
+    its context window and can answer drill-down questions directly.
+    """
+    system = SystemMessage(content=(
+        "You are Finley, an expert financial advisor AI. "
+        "You have already run a full portfolio analysis for the user (visible in the "
+        "conversation history). Answer their follow-up question clearly and concisely, "
+        f"referencing the prior analysis where relevant. "
+        f"Current portfolio: {', '.join(symbols)}."
+    ))
+
+    messages = [system]
+    for turn in req.history:
+        if turn.role == "user":
+            messages.append(HumanMessage(content=turn.content))
+        else:
+            messages.append(AIMessage(content=turn.content))
+    messages.append(HumanMessage(content=req.message))
+
+    response = _llm.invoke(messages)
+    return response.content
+
+
 # ── /chat endpoint ─────────────────────────────────────────────────────────────
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest) -> ChatResponse:
@@ -120,6 +163,20 @@ async def chat(req: ChatRequest) -> ChatResponse:
     if not LIVE:
         return ChatResponse(response=_demo_response(req.message, symbols), live=False)
 
+    # Follow-up: history present → answer with Claude directly (no pipeline)
+    if req.history:
+        try:
+            return ChatResponse(
+                response=_followup_response(req, symbols),
+                live=True,
+            )
+        except Exception as exc:
+            return ChatResponse(
+                response=f"⚠️ Error answering follow-up:\n\n`{exc}`",
+                live=True,
+            )
+
+    # First message: run the full ML pipeline
     try:
         result = get_advisor().invoke(
             user_query=req.message,
