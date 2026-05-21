@@ -23,7 +23,6 @@ import operator
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-from typing_extensions import Annotated  # Annotated added to typing in 3.9; use compat shim
 
 from dotenv import load_dotenv
 
@@ -45,7 +44,7 @@ from src.ml_pipeline import (
 from langchain_core.messages import HumanMessage
 from langchain_core.tools import tool
 from langgraph.graph import StateGraph, START, END
-from typing_extensions import TypedDict
+from typing_extensions import Annotated, TypedDict  # Annotated/TypedDict back-compat for Python < 3.9
 
 logger = logging.getLogger(__name__)
 
