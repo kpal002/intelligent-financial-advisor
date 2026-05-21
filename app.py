@@ -50,14 +50,19 @@ CSS = """
     --font-sans:      -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* ── Full reset — Gradio 5 wraps content in <gradio-app> ────────── */
+/* ── Lock the entire page to exactly one viewport height ────────── */
+/* This is the key fix: nothing can make the page taller than 100vh.  */
 html, body {
+    height: 100% !important;
+    max-height: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
 }
 gradio-app {
     display: block !important;
+    height: 100vh !important;
+    overflow: hidden !important;
     padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
@@ -69,26 +74,29 @@ gradio-app {
 .gradio-container > .main > .wrap > .gap {
     max-width: 100% !important;
     width: 100% !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
     padding: 0 !important;
     margin: 0 !important;
     border-radius: 0 !important;
     background: var(--cream) !important;
-    min-height: 100vh;
     gap: 0 !important;
 }
 footer, .footer { display: none !important; }
 
-/* ── Two-column shell ───────────────────────────────────────────── */
+/* ── Two-column shell — fills the locked viewport ───────────────── */
 #app-row {
     display: flex !important;
     flex-direction: row !important;
-    min-height: 100vh;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
     gap: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
 }
-/* Strip padding from every Gradio block wrapper inside the row */
 #app-row > .block,
 #app-row > div { padding: 0 !important; margin: 0 !important; gap: 0 !important; }
 
@@ -97,6 +105,8 @@ footer, .footer { display: none !important; }
     min-width: 250px !important;
     max-width: 250px !important;
     width: 250px !important;
+    height: 100vh !important;
+    overflow-y: auto !important;
     flex-shrink: 0 !important;
     background: var(--sidebar) !important;
     border-right: 1px solid var(--sidebar-border) !important;
@@ -119,6 +129,8 @@ footer, .footer { display: none !important; }
 #main-col {
     flex: 1 !important;
     min-width: 0 !important;
+    height: 100vh !important;
+    overflow: hidden !important;
     background: var(--cream) !important;
     display: flex !important;
     flex-direction: column !important;
@@ -180,13 +192,13 @@ footer, .footer { display: none !important; }
     color: var(--accent) !important;
 }
 
-/* ── Chat screen — viewport-height fill, no page expansion ─────── */
-/* The chatbot uses calc(100vh - input_bar) so it never overflows */
+/* ── Chat screen — flex column inside locked 100vh container ────── */
 #chat-col {
     flex: 1 !important;
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
+    min-height: 0 !important;
 }
 #chat-col > .block,
 #chat-col > div,
@@ -195,12 +207,16 @@ footer, .footer { display: none !important; }
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
+    flex: 1 !important;
+    min-height: 0 !important;
     overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
-/* chatbot fills remaining height; input bar is ~68 px */
+/* Chatbot fills all remaining flex space; its own scroll handles overflow */
 #chatbot {
-    height: calc(100vh - 68px) !important;
-    max-height: calc(100vh - 68px) !important;
+    flex: 1 !important;
+    min-height: 0 !important;
     overflow: hidden !important;
 }
 #chatbot > div,
