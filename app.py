@@ -632,7 +632,7 @@ QUICK_PROMPTS = [
     "Show me how Isolation Forest detects anomalies in my portfolio",
 ]
 
-with gr.Blocks(title="Finley — Financial Advisor") as demo:
+with gr.Blocks(css=CSS, theme=gr.themes.Base(), title="Finley — Financial Advisor") as demo:
 
     # ── App-level state ────────────────────────────────────────────────────────
     chat_history = gr.State([])
@@ -809,10 +809,4 @@ with gr.Blocks(title="Finley — Financial Advisor") as demo:
 
 # ══════════════════════════════════════════════════════════════════════════════
 if __name__ == "__main__":
-    demo.launch(
-        server_name="0.0.0.0",
-        server_port=7860,
-        share=False,
-        css=CSS,
-        theme=gr.themes.Base(),
-    )
+    demo.launch(server_name="0.0.0.0", server_port=7860, share=False)
