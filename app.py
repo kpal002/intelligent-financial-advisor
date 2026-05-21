@@ -50,18 +50,19 @@ CSS = """
     --font-sans:      -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* ── Lock the entire page to exactly one viewport height ────────── */
-/* This is the key fix: nothing can make the page taller than 100vh.  */
+/* ── Page reset — lock at gradio-app, not html/body ─────────────── */
+/* html/body must NOT have overflow:hidden — that clips the welcome     */
+/* screen. Instead we lock at the gradio-app web-component level so     */
+/* the document never grows, but columns can scroll internally.         */
 html, body {
     height: 100% !important;
-    max-height: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
-    overflow: hidden !important;
 }
 gradio-app {
     display: block !important;
     height: 100vh !important;
+    max-height: 100vh !important;
     overflow: hidden !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -85,7 +86,7 @@ gradio-app {
 }
 footer, .footer { display: none !important; }
 
-/* ── Two-column shell — fills the locked viewport ───────────────── */
+/* ── Two-column shell ───────────────────────────────────────────── */
 #app-row {
     display: flex !important;
     flex-direction: row !important;
@@ -125,12 +126,13 @@ footer, .footer { display: none !important; }
     margin: 0 !important;
 }
 
-/* ── Main column ────────────────────────────────────────────────── */
+/* ── Main column — scrolls internally so welcome screen is reachable */
 #main-col {
     flex: 1 !important;
     min-width: 0 !important;
     height: 100vh !important;
-    overflow: hidden !important;
+    overflow-y: auto !important;   /* welcome screen can scroll inside here */
+    overflow-x: hidden !important;
     background: var(--cream) !important;
     display: flex !important;
     flex-direction: column !important;
