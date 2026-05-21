@@ -209,28 +209,75 @@ footer, .footer { display: none !important; }
     box-shadow: none !important;
 }
 #chatbot .message-wrap,
-#chatbot .bubble-wrap { padding: 20px 40px !important; gap: 16px !important; }
+#chatbot .bubble-wrap { padding: 20px 48px !important; gap: 20px !important; }
 
-/* Bot bubble */
+/* ── Bot bubble — same cream as page, no box ────────────────────── */
 #chatbot .bot,
 #chatbot [data-testid="bot"],
-#chatbot .message.bot {
-    background: #ffffff !important;
-    border: 1px solid var(--card-border) !important;
-    border-radius: 12px !important;
-    color: var(--text-dark) !important;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
+#chatbot .message.bot,
+#chatbot .message.bot > div {
+    background: var(--cream) !important;   /* blend with page — no separate box */
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    color: #1c1c1c !important;
+    padding: 0 !important;
 }
-/* User bubble */
+
+/* ── All text inside the chatbot — force dark & readable ────────── */
+#chatbot *,
+#chatbot p,
+#chatbot li,
+#chatbot ol,
+#chatbot ul,
+#chatbot blockquote,
+#chatbot code,
+#chatbot pre,
+#chatbot strong,
+#chatbot em,
+#chatbot h1, #chatbot h2, #chatbot h3, #chatbot h4, #chatbot h5 {
+    color: #1c1c1c !important;
+}
+
+/* ── Tables inside bot responses ────────────────────────────────── */
+#chatbot table {
+    border-collapse: collapse !important;
+    width: auto !important;
+    margin: 12px 0 !important;
+    font-family: var(--font-sans) !important;
+    font-size: 0.88rem !important;
+}
+#chatbot th {
+    background: #ede5dc !important;
+    color: #1c1c1c !important;
+    font-weight: 600 !important;
+    padding: 8px 14px !important;
+    border: 1px solid #d4c4b4 !important;
+    text-align: left !important;
+}
+#chatbot td {
+    background: transparent !important;
+    color: #1c1c1c !important;
+    padding: 7px 14px !important;
+    border: 1px solid #d4c4b4 !important;
+}
+#chatbot tr:nth-child(even) td { background: rgba(196,98,45,0.04) !important; }
+
+/* ── User bubble — accent pill ──────────────────────────────────── */
 #chatbot .user,
 #chatbot [data-testid="user"],
-#chatbot .message.user {
+#chatbot .message.user,
+#chatbot .message.user > div {
     background: var(--accent) !important;
     color: white !important;
-    border-radius: 12px !important;
+    border-radius: 18px !important;
     border: none !important;
+    padding: 10px 16px !important;
+    max-width: 75% !important;
+    margin-left: auto !important;
 }
-#chatbot .message p, #chatbot .message span, #chatbot .prose { color: inherit !important; }
+#chatbot .message.user p,
+#chatbot .message.user span { color: white !important; }
 
 /* ── Input bar ──────────────────────────────────────────────────── */
 #input-bar {
