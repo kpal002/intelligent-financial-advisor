@@ -517,22 +517,12 @@ EXAMPLES = [
     ["Show me how Isolation Forest detects anomalies in my portfolio", "AAPL, MSFT", ""],
 ]
 
-# Use theme.set() — the only reliable way to control Gradio 5 input colours.
-# CSS overrides lose to Svelte-scoped theme variables; theme.set() wins.
-_theme = gr.themes.Base().set(
-    input_background_fill="#ede8e2",
-    input_background_fill_focus="#e8e1d8",
-    input_border_color="#ddd5c8",
+# gr.themes.Soft is an explicitly light theme — inputs, blocks and panels are
+# all light by default regardless of system dark-mode preference.
+# We only override the focus/accent colour to match the terracotta palette.
+_theme = gr.themes.Soft().set(
     input_border_color_focus="#c4622d",
-    input_placeholder_color="#a09080",
-    input_shadow="none",
-    block_background_fill="#f5f0ea",
-    block_border_color="#e8ddd4",
-    block_label_text_color="#7a5c4e",
-    block_shadow="none",
-    panel_background_fill="#f5f0ea",
-    body_text_color="#3a2820",
-    body_text_color_subdued="#7a5c4e",
+    input_shadow_focus="0 0 0 3px rgba(196,98,45,0.12)",
 )
 
 with gr.Blocks(
