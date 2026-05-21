@@ -31,6 +31,9 @@ except Exception as _e:
 # ══════════════════════════════════════════════════════════════════════════════
 
 CSS = """
+/* ── Force light mode — blocks OS/browser/HF dark-mode overrides ── */
+:root, html, body { color-scheme: light only; }
+
 /* ── Core reset ─────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; background: #f5f0ea; }
@@ -44,12 +47,27 @@ footer, .footer, .svelte-footer { display: none !important; }
     background: #f5f0ea !important;
 }
 
-/* ── ChatInterface wrapper ───────────────────────────────── */
-.gradio-chatinterface { background: #f5f0ea !important; }
-.gradio-chatinterface > div { background: #f5f0ea !important; }
+/* ── ChatInterface — flex column, fills viewport height ─── */
+.gradio-chatinterface {
+    display: flex !important;
+    flex-direction: column !important;
+    height: calc(100vh - 20px) !important;
+    background: #f5f0ea !important;
+    overflow: hidden !important;
+}
+.gradio-chatinterface > div {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+    background: #f5f0ea !important;
+}
 
-/* ── Chatbot display ─────────────────────────────────────── */
+/* ── Chatbot area — grows to fill remaining space ─────────── */
 #chatbot {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
     background: #f5f0ea !important;
     border: none !important;
     box-shadow: none !important;
@@ -64,61 +82,34 @@ footer, .footer, .svelte-footer { display: none !important; }
 }
 #chatbot .message-wrap { padding: 20px 56px !important; gap: 18px !important; }
 
-/* Bot bubble — blends with page background */
-#chatbot .bot,
-#chatbot [data-testid="bot"],
-#chatbot .message.bot,
-#chatbot .message.bot > div {
+/* Bot bubble */
+#chatbot .bot, #chatbot [data-testid="bot"],
+#chatbot .message.bot, #chatbot .message.bot > div {
     background: #f5f0ea !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    padding: 0 !important;
+    border: none !important; border-radius: 0 !important;
+    box-shadow: none !important; padding: 0 !important;
 }
-
 /* Force all chatbot text dark */
-#chatbot *,
-#chatbot p, #chatbot li, #chatbot ul, #chatbot ol,
-#chatbot h1, #chatbot h2, #chatbot h3, #chatbot h4,
-#chatbot strong, #chatbot em, #chatbot code, #chatbot blockquote {
+#chatbot *, #chatbot p, #chatbot li, #chatbot h1, #chatbot h2,
+#chatbot h3, #chatbot strong, #chatbot em, #chatbot code {
     color: #1c1c1c !important;
 }
-
-/* User bubble — terracotta pill */
-#chatbot .user,
-#chatbot [data-testid="user"],
-#chatbot .message.user,
-#chatbot .message.user > div {
-    background: #c4622d !important;
-    color: white !important;
-    border-radius: 18px !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 10px 16px !important;
-    max-width: 75% !important;
-    margin-left: auto !important;
+/* User bubble */
+#chatbot .user, #chatbot [data-testid="user"],
+#chatbot .message.user, #chatbot .message.user > div {
+    background: #c4622d !important; color: white !important;
+    border-radius: 18px !important; border: none !important;
+    box-shadow: none !important; padding: 10px 16px !important;
+    max-width: 75% !important; margin-left: auto !important;
 }
 #chatbot .message.user p,
-#chatbot .message.user span,
 #chatbot .message.user * { color: white !important; }
-
-/* Tables in bot responses */
-#chatbot table { border-collapse: collapse !important; font-size: 0.88rem !important; margin: 10px 0 !important; }
-#chatbot th { background: #ede5dc !important; color: #1c1c1c !important; padding: 8px 14px !important; border: 1px solid #d4c4b4 !important; font-weight: 600 !important; text-align: left !important; }
+/* Tables */
+#chatbot table { border-collapse: collapse !important; font-size: 0.88rem !important; }
+#chatbot th { background: #ede5dc !important; color: #1c1c1c !important; padding: 8px 14px !important; border: 1px solid #d4c4b4 !important; font-weight: 600 !important; }
 #chatbot td { color: #1c1c1c !important; padding: 7px 14px !important; border: 1px solid #d4c4b4 !important; }
-#chatbot tr:nth-child(even) td { background: rgba(196,98,45,0.04) !important; }
 
-/* ── Input row ────────────────────────────────────────────── */
-.chatbot-input,
-[data-testid="chatbot-input"],
-.gradio-chatinterface .input-row,
-.gradio-chatinterface > div > div:last-child {
-    background: white !important;
-    border-top: 1px solid #e8ddd4 !important;
-    padding: 10px 16px !important;
-}
-
-/* Textbox inside input row */
+/* ── Input textarea (main chat box) ──────────────────────── */
 .gradio-chatinterface textarea {
     background: #fdfaf7 !important;
     border: 1.5px solid #e8ddd4 !important;
@@ -136,34 +127,24 @@ footer, .footer, .svelte-footer { display: none !important; }
 }
 
 /* Submit button */
-.gradio-chatinterface button[aria-label="Submit"],
-.gradio-chatinterface .submit-btn {
+.gradio-chatinterface button[aria-label="Submit"] {
     background: #c4622d !important;
-    border: none !important;
-    border-radius: 8px !important;
-    color: white !important;
+    border: none !important; border-radius: 8px !important; color: white !important;
 }
 .gradio-chatinterface button[aria-label="Submit"]:hover { background: #a8521f !important; }
 
-/* ── Examples (quick-prompt chips) ───────────────────────── */
+/* ── Examples ─────────────────────────────────────────────── */
 .gradio-chatinterface .examples-row { padding: 0 16px 10px !important; gap: 8px !important; }
-.gradio-chatinterface .examples-row button,
-.example-btn {
-    background: #e8e1d8 !important;
-    border: none !important;
-    border-radius: 20px !important;
-    color: #3a2820 !important;
-    font-size: 0.84rem !important;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-    padding: 8px 16px !important;
-    cursor: pointer !important;
-    white-space: nowrap !important;
+.gradio-chatinterface .examples-row button {
+    background: #e8e1d8 !important; border: none !important;
+    border-radius: 20px !important; color: #3a2820 !important;
+    font-size: 0.84rem !important; padding: 8px 16px !important;
+    cursor: pointer !important; white-space: nowrap !important;
 }
 .gradio-chatinterface .examples-row button:hover { background: #ddd5ca !important; color: #c4622d !important; }
 
-/* ── Additional inputs (portfolio settings) ───────────────── */
-/* Colors are controlled via gr.themes.Base().set() in Python —     */
-/* see _theme below. No CSS variable overrides needed here.         */
+/* ── Portfolio settings accordion ────────────────────────── */
+/* Input colors come from gr.themes.Base().set() — see _theme below */
 .gradio-chatinterface .additional-inputs .block,
 .gradio-chatinterface .additional-inputs-accordion {
     border: 1px solid #e8ddd4 !important;
@@ -551,8 +532,7 @@ with gr.Blocks(
             elem_id="chatbot",
             placeholder="Type a question or click an example below…",
             show_label=False,
-            height=450,   # fixed height keeps the input row on-screen
-            avatar_images=(
+avatar_images=(
                 None,
                 "https://api.dicebear.com/7.x/bottts/svg?seed=finley",
             ),
