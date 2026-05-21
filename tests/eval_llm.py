@@ -445,7 +445,7 @@ def main() -> None:
     symbols = [s.upper() for s in args.symbols]
     alloc   = {s: 1 / len(symbols) for s in symbols}
 
-    print(f"  Mode    : LIVE")
+    print("  Mode    : LIVE")
     print(f"  Symbols : {symbols}")
     print("  Running advisor pipeline …  (60–120 s)\n")
 

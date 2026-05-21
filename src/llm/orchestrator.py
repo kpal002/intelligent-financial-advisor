@@ -474,7 +474,12 @@ def synthesize_with_llm(state: AgentState, llm: ChatAnthropic) -> Dict[str, Any]
             for s, w in state["current_allocation"].items()
         )
 
-        prompt = f"""You are an expert financial advisor AI. Three specialized ML agents have analysed this portfolio. Synthesise their outputs into a clear, actionable investment report.
+        _system = (
+            "You are an expert financial advisor AI. "
+            "Three specialized ML agents have analysed this portfolio. "
+            "Synthesise their outputs into a clear, actionable investment report."
+        )
+        prompt = _system + f"""
 
 USER QUERY
 {state['user_query']}
@@ -662,7 +667,7 @@ if __name__ == "__main__":
     conf = result['confidence_score']
     print(f"Confidence: {f'{conf:.2%}' if conf is not None else 'N/A'}")
     print(f"\nAdvice:\n{result['final_advice']}")
-    print(f"\nExecution trace:")
+    print("\nExecution trace:")
     for step in result["execution_trace"]:
         print(f"  → {step}")
     print("=" * 70)

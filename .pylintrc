@@ -2,6 +2,14 @@
 # Run with multiple processes for speed
 jobs=1
 
+# Parse and evaluate as Python 3.10.
+# This is required because the codebase uses:
+#   - parenthesised `with` blocks (3.10+)
+#   - built-in generics as type hints: list[str], dict[k,v], tuple[...] (3.9+)
+#   - typing.Annotated (3.9+)
+# Without this, pylint defaults to 3.8 and flags all of the above as errors.
+py-version=3.10
+
 # Ignore virtualenvs and generated files
 ignore=.git,__pycache__,.venv,venv,node_modules,migrations
 
@@ -43,15 +51,20 @@ ignore=.git,__pycache__,.venv,venv,node_modules,migrations
 #   (dotenv must be loaded before any package that reads env vars at import).
 
 disable=
-    E0401,
-    R0903,
-    C0116,
-    W1203,
-    W0603,
-    C0415,
-    R0914,
-    C0411,
-    C0413
+    E0401,   # import-error: false positive when packages not installed at lint time
+    R0903,   # too-few-public-methods: Pydantic/TypedDict schema classes
+    C0115,   # missing-class-docstring: test classes and schema classes are self-documenting
+    C0116,   # missing-function-docstring: short helpers and pytest methods
+    W1203,   # logging-fstring-interpolation: f-strings in logging are fine here
+    W0603,   # global-statement: used for module-level singleton caching
+    C0415,   # import-outside-toplevel: conditional/deferred imports are intentional
+    R0914,   # too-many-locals: numerical routines legitimately need many variables
+    C0411,   # wrong-import-order: dotenv/sys.path manipulation before third-party imports
+    C0413,   # wrong-import-position: same as above
+    W0621,   # redefined-outer-name: standard pytest fixture shadowing pattern
+    W0201,   # attribute-defined-outside-init: standard pytest setUp pattern
+    W0212,   # protected-access: intentional internal ML model access
+    W0718    # broad-exception-caught: intentional catch-all in HF Spaces / Gradio entry points
 
 [FORMAT]
 # Match flake8 setting in CI

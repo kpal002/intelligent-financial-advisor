@@ -62,7 +62,7 @@ def eval_arima(symbol: str, n_windows: int = 10) -> dict:
 
     For each window we:
       - Train ARIMA on all data up to that point
-      - Predict HORIZON days ahead
+      - Predict horizon days ahead
       - Check whether the final predicted price is on the correct side
         of the last observed price (direction correct = True)
 
@@ -72,8 +72,8 @@ def eval_arima(symbol: str, n_windows: int = 10) -> dict:
     """
     _divider(f"ARIMA Directional Accuracy — {symbol}")
 
-    HORIZON   = 5    # predict 5 trading days ahead
-    MIN_TRAIN = 200  # minimum training observations
+    horizon   = 5    # predict 5 trading days ahead
+    min_train = 200  # minimum training observations
 
     # Fetch ~2 years once; inject slices into each window's forecaster
     master = TimeSeriesForecaster(symbol, lookback_days=730)
@@ -81,14 +81,14 @@ def eval_arima(symbol: str, n_windows: int = 10) -> dict:
     full_data = master.data.copy()
     prices    = full_data["Close"].dropna()
 
-    if len(prices) < MIN_TRAIN + HORIZON + 1:
+    if len(prices) < min_train + horizon + 1:
         print(f"  Not enough data ({len(prices)} rows). Skipping.")
         return {"symbol": symbol, "accuracy": float("nan"), "passed": False}
 
     # Evenly space evaluation indices after the minimum training cutoff
     eval_indices = np.linspace(
-        MIN_TRAIN,
-        len(prices) - HORIZON - 1,
+        min_train,
+        len(prices) - horizon - 1,
         n_windows,
         dtype=int,
     )
@@ -100,14 +100,14 @@ def eval_arima(symbol: str, n_windows: int = 10) -> dict:
         f.data = full_data.iloc[:idx].copy()
 
         try:
-            fc = f.fit_arima(forecast_horizon=HORIZON)
+            fc = f.fit_arima(forecast_horizon=horizon)
         except Exception as exc:
             print(f"  window {i + 1:2d} (@day {idx:4d}): ARIMA failed — {exc}")
             continue
 
         last_actual  = float(prices.iloc[idx - 1])
         pred_dir     = fc.forecast_values[-1] > last_actual
-        actual_dir   = float(prices.iloc[idx + HORIZON - 1]) > last_actual
+        actual_dir   = float(prices.iloc[idx + horizon - 1]) > last_actual
 
         correct += int(pred_dir == actual_dir)
         total   += 1
@@ -177,16 +177,16 @@ def eval_var_kupiec(symbols: list, weights: dict, years: int = 2) -> dict:
 
     p       = 0.05                      # expected violation rate
     w_vec   = np.array([weights[s] for s in symbols])
-    LOOKBACK = 252
+    lookback = 252
 
-    if len(returns) < LOOKBACK + 30:
+    if len(returns) < lookback + 30:
         print("  Not enough data for rolling VaR test. Need at least 282 days.")
         return {"passed": False, "calibrated": False}
 
     violations, n = 0, 0
 
-    for t in range(LOOKBACK, len(returns)):
-        window    = returns.iloc[t - LOOKBACK : t]
+    for t in range(lookback, len(returns)):
+        window    = returns.iloc[t - lookback : t]
         port_r    = (window.values * w_vec).sum(axis=1)
         var_est   = float(np.percentile(port_r, 5))   # 95% historical VaR
 
