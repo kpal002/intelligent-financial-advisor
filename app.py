@@ -35,7 +35,7 @@ except Exception as _e:
 # ══════════════════════════════════════════════════════════════════════════════
 
 CSS = """
-/* ── Variables ─────────────────────────────────────────────────── */
+/* ── Variables ─────────────────────────────────────────── */
 :root {
     --cream:          #f5f0ea;
     --sidebar:        #241410;
@@ -44,281 +44,174 @@ CSS = """
     --accent-hover:   #a8521f;
     --card-border:    #e8ddd4;
     --text-dark:      #1c1c1c;
-    --text-mid:       #555;
-    --text-light:     #999;
     --font-serif:     Georgia, 'Times New Roman', serif;
     --font-sans:      -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* ── Page reset — lock at gradio-app, not html/body ─────────────── */
-/* html/body must NOT have overflow:hidden — that clips the welcome     */
-/* screen. Instead we lock at the gradio-app web-component level so     */
-/* the document never grows, but columns can scroll internally.         */
-html, body {
-    height: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-gradio-app {
-    display: block !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
-    overflow: hidden !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-}
-.gradio-container,
-.gradio-container > .main,
-.gradio-container > .main > .wrap,
-.gradio-container > .main > .wrap > .contain,
-.gradio-container > .main > .wrap > .gap {
-    max-width: 100% !important;
-    width: 100% !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
-    overflow: hidden !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    background: var(--cream) !important;
-    gap: 0 !important;
-}
+/* ── Minimal page reset ─────────────────────────────────── */
+html, body { margin: 0; padding: 0; overflow: hidden; }
+.gradio-container { padding: 0 !important; max-width: 100% !important; }
 footer, .footer { display: none !important; }
 
-/* ── Two-column shell ───────────────────────────────────────────── */
+/* ── SHELL: fixed to viewport — ignores all Gradio sizing ── */
+/* position:fixed means #app-row is anchored directly to the  */
+/* browser window regardless of what Gradio's wrappers do.    */
 #app-row {
+    position: fixed !important;
+    top: 0 !important; left: 0 !important;
+    right: 0 !important; bottom: 0 !important;
     display: flex !important;
     flex-direction: row !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
     overflow: hidden !important;
-    gap: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
+    background: var(--cream) !important;
 }
-#app-row > .block,
-#app-row > div { padding: 0 !important; margin: 0 !important; gap: 0 !important; }
+#app-row > .block, #app-row > div {
+    padding: 0 !important; margin: 0 !important; gap: 0 !important;
+}
 
-/* ── Sidebar — flush to left edge, coffee brown ─────────────────── */
+/* ── Sidebar ────────────────────────────────────────────── */
 #sidebar-col {
-    min-width: 250px !important;
-    max-width: 250px !important;
-    width: 250px !important;
-    height: 100vh !important;
-    overflow-y: auto !important;
+    width: 250px !important; min-width: 250px !important; max-width: 250px !important;
     flex-shrink: 0 !important;
+    height: 100% !important;
+    overflow-y: auto !important;
     background: var(--sidebar) !important;
     border-right: 1px solid var(--sidebar-border) !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
+    padding: 0 !important; margin: 0 !important;
+    border-radius: 0 !important; box-shadow: none !important;
 }
-#sidebar-col > .block,
-#sidebar-col > div,
-#sidebar-col > .block > div {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
+#sidebar-col > .block, #sidebar-col > div, #sidebar-col > .block > div {
+    background: transparent !important; border: none !important;
+    box-shadow: none !important; padding: 0 !important; margin: 0 !important;
 }
 
-/* ── Main column — scrolls internally so welcome screen is reachable */
+/* ── Main column — relative so children can be absolute ─────── */
 #main-col {
-    flex: 1 !important;
-    min-width: 0 !important;
-    height: 100vh !important;
-    overflow-y: auto !important;   /* welcome screen can scroll inside here */
-    overflow-x: hidden !important;
+    flex: 1 !important; min-width: 0 !important;
+    height: 100% !important; position: relative !important;
+    overflow: hidden !important;
     background: var(--cream) !important;
-    display: flex !important;
-    flex-direction: column !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
+    padding: 0 !important; margin: 0 !important;
+    border-radius: 0 !important; box-shadow: none !important;
 }
-#main-col > .block,
-#main-col > div,
-#main-col > .block > div {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
+/* Strip Gradio's inner wrappers — keep them visually transparent */
+#main-col > .block, #main-col > div, #main-col > .block > div {
+    background: transparent !important; border: none !important;
+    box-shadow: none !important; padding: 0 !important; margin: 0 !important;
 }
 
-/* ── Welcome screen ─────────────────────────────────────────────── */
-#welcome-col { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 0 40px; }
-#welcome-col > .block,
-#welcome-col > div,
-#welcome-col > .block > div {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    width: 100%;
-    padding: 0 !important;
-    margin: 0 !important;
+/* ── Welcome screen — absolute, fills between status bar & input ── */
+/* Sized by coordinates, not by flex — immune to wrapper issues.     */
+#welcome-col {
+    position: absolute !important;
+    top: 44px !important; left: 0 !important;
+    right: 0 !important; bottom: 70px !important;
+    overflow-y: auto !important;
+    display: flex !important; flex-direction: column !important;
+    align-items: center !important;
+    padding: 0 0 16px !important;
+}
+#welcome-col > .block, #welcome-col > div, #welcome-col > .block > div {
+    background: transparent !important; border: none !important;
+    box-shadow: none !important; width: 100%;
+    padding: 0 !important; margin: 0 !important;
 }
 
-/* ── Quick-prompt buttons — beige pill, matching reference ──────── */
-#welcome-col .gap { align-items: stretch !important; }
-.qbtn { display: flex !important; flex-direction: column !important; height: 100% !important; padding: 0 4px !important; }
-.qbtn > .block { padding: 0 !important; height: 100% !important; display: flex !important; flex-direction: column !important; }
-
-/* Use #welcome-col button — beats Gradio Svelte-scoped specificity */
+/* Quick-prompt buttons — beige pill */
 #welcome-col button {
     background: #e8e1d8 !important;
     border: none !important;
     border-radius: 16px !important;
     color: #3a2820 !important;
-    font-size: 0.95rem !important;
+    font-size: 0.9rem !important;
     font-family: var(--font-sans) !important;
     font-weight: 400 !important;
     text-align: left !important;
-    padding: 20px 22px !important;
-    line-height: 1.55 !important;
+    padding: 18px 20px !important;
+    line-height: 1.5 !important;
     white-space: normal !important;
-    flex: 1 !important;
-    height: 100% !important;
-    min-height: 80px !important;
+    min-height: 76px !important;
     box-shadow: none !important;
     transition: background 0.15s !important;
     width: 100% !important;
 }
 #welcome-col button:hover {
-    background: #ddd5ca !important;
-    color: var(--accent) !important;
+    background: #ddd5ca !important; color: var(--accent) !important;
 }
 
-/* ── Chat screen — flex column inside locked 100vh container ────── */
+/* ── Chat screen — same absolute footprint as welcome col ─────── */
 #chat-col {
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
+    position: absolute !important;
+    top: 44px !important; left: 0 !important;
+    right: 0 !important; bottom: 70px !important;
     overflow: hidden !important;
-    min-height: 0 !important;
+    display: flex !important; flex-direction: column !important;
 }
-#chat-col > .block,
-#chat-col > div,
-#chat-col > .block > div {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    flex: 1 !important;
-    min-height: 0 !important;
+#chat-col > .block, #chat-col > div, #chat-col > .block > div {
+    background: transparent !important; border: none !important;
+    box-shadow: none !important; padding: 0 !important;
+    flex: 1 !important; min-height: 0 !important;
+    display: flex !important; flex-direction: column !important;
     overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
 }
-/* Chatbot fills all remaining flex space; its own scroll handles overflow */
 #chatbot {
-    flex: 1 !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
+    flex: 1 !important; min-height: 0 !important; overflow: hidden !important;
 }
-#chatbot > div,
-#chatbot .wrap,
-#chatbot .bubble-wrap,
-#chatbot .scroll-hide {
-    height: 100% !important;
-    overflow-y: auto !important;
+#chatbot > div, #chatbot .wrap, #chatbot .bubble-wrap, #chatbot .scroll-hide {
+    height: 100% !important; overflow-y: auto !important;
 }
 
-/* Cream background on every chatbot layer */
-#chatbot,
-#chatbot > div,
-#chatbot .wrap,
-#chatbot .bubble-wrap,
-#chatbot .scroll-hide,
-#chatbot .message-wrap {
-    background: var(--cream) !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-#chatbot .message-wrap,
-#chatbot .bubble-wrap { padding: 24px 56px !important; gap: 20px !important; }
-
-/* ── Bot bubble — same cream as page, no box ────────────────────── */
-#chatbot .bot,
-#chatbot [data-testid="bot"],
-#chatbot .message.bot,
-#chatbot .message.bot > div {
-    background: var(--cream) !important;   /* blend with page — no separate box */
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    color: #1c1c1c !important;
-    padding: 0 !important;
+/* ── Input bar — pinned to bottom of #main-col ────────────────── */
+#input-bar {
+    position: absolute !important;
+    bottom: 0 !important; left: 0 !important; right: 0 !important;
 }
 
-/* ── All text inside the chatbot — force dark & readable ────────── */
-#chatbot *,
-#chatbot p,
-#chatbot li,
-#chatbot ol,
-#chatbot ul,
-#chatbot blockquote,
-#chatbot code,
-#chatbot pre,
-#chatbot strong,
-#chatbot em,
+/* Chatbot background — cream throughout */
+#chatbot, #chatbot > div, #chatbot .wrap,
+#chatbot .bubble-wrap, #chatbot .scroll-hide, #chatbot .message-wrap {
+    background: var(--cream) !important; border: none !important; box-shadow: none !important;
+}
+#chatbot .message-wrap, #chatbot .bubble-wrap { padding: 24px 56px !important; gap: 20px !important; }
+
+/* Bot bubble — blend with page */
+#chatbot .bot, #chatbot [data-testid="bot"],
+#chatbot .message.bot, #chatbot .message.bot > div {
+    background: var(--cream) !important; border: none !important;
+    border-radius: 0 !important; box-shadow: none !important;
+    color: #1c1c1c !important; padding: 0 !important;
+}
+
+/* All text — dark and readable */
+#chatbot *, #chatbot p, #chatbot li, #chatbot ol, #chatbot ul,
+#chatbot blockquote, #chatbot code, #chatbot pre,
+#chatbot strong, #chatbot em,
 #chatbot h1, #chatbot h2, #chatbot h3, #chatbot h4, #chatbot h5 {
     color: #1c1c1c !important;
 }
 
-/* ── Tables inside bot responses ────────────────────────────────── */
-#chatbot table {
-    border-collapse: collapse !important;
-    width: auto !important;
-    margin: 12px 0 !important;
-    font-family: var(--font-sans) !important;
-    font-size: 0.88rem !important;
-}
-#chatbot th {
-    background: #ede5dc !important;
-    color: #1c1c1c !important;
-    font-weight: 600 !important;
-    padding: 8px 14px !important;
-    border: 1px solid #d4c4b4 !important;
-    text-align: left !important;
-}
-#chatbot td {
-    background: transparent !important;
-    color: #1c1c1c !important;
-    padding: 7px 14px !important;
-    border: 1px solid #d4c4b4 !important;
-}
+/* Tables */
+#chatbot table { border-collapse: collapse !important; width: auto !important; margin: 12px 0 !important; font-family: var(--font-sans) !important; font-size: 0.88rem !important; }
+#chatbot th { background: #ede5dc !important; color: #1c1c1c !important; font-weight: 600 !important; padding: 8px 14px !important; border: 1px solid #d4c4b4 !important; text-align: left !important; }
+#chatbot td { background: transparent !important; color: #1c1c1c !important; padding: 7px 14px !important; border: 1px solid #d4c4b4 !important; }
 #chatbot tr:nth-child(even) td { background: rgba(196,98,45,0.04) !important; }
 
-/* ── User bubble — accent pill ──────────────────────────────────── */
-#chatbot .user,
-#chatbot [data-testid="user"],
-#chatbot .message.user,
-#chatbot .message.user > div {
-    background: var(--accent) !important;
-    color: white !important;
-    border-radius: 18px !important;
-    border: none !important;
-    padding: 10px 16px !important;
-    max-width: 75% !important;
-    margin-left: auto !important;
+/* User bubble — accent pill */
+#chatbot .user, #chatbot [data-testid="user"],
+#chatbot .message.user, #chatbot .message.user > div {
+    background: var(--accent) !important; color: white !important;
+    border-radius: 18px !important; border: none !important;
+    padding: 10px 16px !important; max-width: 75% !important; margin-left: auto !important;
 }
-#chatbot .message.user p,
-#chatbot .message.user span { color: white !important; }
+#chatbot .message.user p, #chatbot .message.user span { color: white !important; }
 
-/* ── Input bar ──────────────────────────────────────────────────── */
+/* ── Input bar — styled; position is set in layout section above ── */
 #input-bar {
-    background: white;
-    border-top: 1px solid var(--card-border);
-    padding: 12px 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    background: white !important;
+    border-top: 1px solid var(--card-border) !important;
+    padding: 12px 20px !important;
+    display: flex !important; align-items: center !important; gap: 10px !important;
+    z-index: 10 !important;
 }
 #input-bar > .block, #input-bar > div {
     background: transparent !important; border: none !important;
@@ -326,51 +219,34 @@ footer, .footer { display: none !important; }
 }
 #msg-box textarea {
     border: 1.5px solid var(--card-border) !important;
-    border-radius: 10px !important;
-    background: #fdfaf7 !important;
-    color: var(--text-dark) !important;
-    font-family: var(--font-sans) !important;
-    font-size: 0.92rem !important;
-    padding: 12px 16px !important;
-    resize: none !important;
-    min-height: 44px !important;
-    max-height: 120px !important;
+    border-radius: 10px !important; background: #fdfaf7 !important;
+    color: var(--text-dark) !important; font-family: var(--font-sans) !important;
+    font-size: 0.92rem !important; padding: 12px 16px !important;
+    resize: none !important; min-height: 44px !important; max-height: 120px !important;
 }
 #msg-box textarea:focus {
-    border-color: var(--accent) !important;
-    outline: none !important;
+    border-color: var(--accent) !important; outline: none !important;
     box-shadow: 0 0 0 3px rgba(196,98,45,0.08) !important;
 }
 #send-btn {
-    background: var(--accent) !important;
-    border: none !important;
-    border-radius: 10px !important;
-    color: white !important;
-    font-size: 1.1rem !important;
-    min-width: 44px !important;
-    height: 44px !important;
-    padding: 0 !important;
-    font-weight: 600 !important;
+    background: var(--accent) !important; border: none !important;
+    border-radius: 10px !important; color: white !important;
+    font-size: 1.1rem !important; min-width: 44px !important;
+    height: 44px !important; padding: 0 !important; font-weight: 600 !important;
 }
 #send-btn:hover { background: var(--accent-hover) !important; }
 
-/* ── Portfolio sidebar inputs ───────────────────────────────────── */
+/* ── Portfolio sidebar inputs ─────────────────────────────── */
 #portfolio-section textarea, #portfolio-section input {
-    background: #2e1a0e !important;
-    border: 1px solid #4a2a18 !important;
-    border-radius: 8px !important;
-    color: #e0d4ca !important;
-    font-family: var(--font-sans) !important;
-    font-size: 0.82rem !important;
+    background: #2e1a0e !important; border: 1px solid #4a2a18 !important;
+    border-radius: 8px !important; color: #e0d4ca !important;
+    font-family: var(--font-sans) !important; font-size: 0.82rem !important;
 }
 #portfolio-section textarea::placeholder,
 #portfolio-section input::placeholder { color: #7a5c4e !important; }
 #portfolio-section label span {
-    color: #9a7060 !important;
-    font-family: var(--font-sans) !important;
-    font-size: 0.68rem !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.1em !important;
+    color: #9a7060 !important; font-family: var(--font-sans) !important;
+    font-size: 0.68rem !important; text-transform: uppercase !important; letter-spacing: 0.1em !important;
 }
 #portfolio-section .block, #portfolio-section > div {
     background: transparent !important; border: none !important;
@@ -483,7 +359,7 @@ SIDEBAR_HTML = """
 WELCOME_HEADER_HTML = """
 <div style="
     text-align:center;
-    padding: 64px 24px 36px;
+    padding: 40px 24px 24px;
     font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 ">
   <h1 style="
@@ -500,7 +376,7 @@ WELCOME_HEADER_HTML = """
 MODE_CARDS_HTML = """
 <div style="
     display:flex; gap:16px;
-    max-width:820px; margin:0 auto 28px;
+    max-width:820px; margin:0 auto 16px;
     padding:0 32px; box-sizing:border-box;
     font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 ">
@@ -578,7 +454,7 @@ function fillPrompt(text) {
 DIVIDER_HTML = """
 <div style="
     text-align:center; color:#aaa; font-size:0.83rem;
-    margin:0 0 18px;
+    margin:0 0 12px;
     font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 ">
   or jump straight in with
