@@ -507,11 +507,14 @@ def respond(
     return call_advisor(message.strip(), symbols, weights)
 
 
+# When additional_inputs are present, gr.ChatInterface requires examples to be
+# a list of lists: [message, <value for each additional_input>, ...]
+# Here: [message, symbols, weights]
 EXAMPLES = [
-    "Should I rebalance given recent Fed rate hikes?",
-    "Can you explain what my Sharpe ratio actually means?",
-    "I need to reduce risk — where should I start?",
-    "Show me how Isolation Forest detects anomalies in my portfolio",
+    ["Should I rebalance given recent Fed rate hikes?",        "AAPL, MSFT", ""],
+    ["Can you explain what my Sharpe ratio actually means?",   "AAPL, MSFT", ""],
+    ["I need to reduce risk — where should I start?",          "AAPL, MSFT", ""],
+    ["Show me how Isolation Forest detects anomalies in my portfolio", "AAPL, MSFT", ""],
 ]
 
 _chatbot_kwargs: dict = {}
