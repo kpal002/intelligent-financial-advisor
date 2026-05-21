@@ -1,8 +1,8 @@
 ---
 title: Intelligent Financial Advisor
 emoji: 📈
-colorFrom: orange
-colorTo: red
+colorFrom: red
+colorTo: yellow
 sdk: gradio
 sdk_version: "4.44.0"
 app_file: app.py
