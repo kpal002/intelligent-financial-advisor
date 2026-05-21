@@ -329,6 +329,6 @@ class TestRebalancingDetector:
             days_since_rebalance=3,
             volatility_regime="low",
         )
-        needs_rebalance, confidence = detector.predict(features)
+        needs_rebalance, _ = detector.predict(features)
         # With very low drift the model should lean toward not rebalancing
         assert needs_rebalance is False

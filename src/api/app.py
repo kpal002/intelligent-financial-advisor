@@ -30,7 +30,7 @@ _advisor: Optional[FinancialAdvisorGraph] = None
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     """
     FastAPI lifespan: initialise heavy resources on startup, release on shutdown.
     Using lifespan (not deprecated @app.on_event) so startup errors are visible.

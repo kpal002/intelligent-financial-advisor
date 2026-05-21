@@ -521,7 +521,7 @@ STATUS_HTML = (
 #  DEMO RESPONSE (used when advisor is not available)
 # ══════════════════════════════════════════════════════════════════════════════
 
-def _demo_response(query: str, symbols: list[str]) -> str:
+def _demo_response(_query: str, symbols: list[str]) -> str:
     sym_str = " and ".join(symbols) if symbols else "your portfolio"
     return f"""## Investment Advisory Report — *Demo Mode*
 

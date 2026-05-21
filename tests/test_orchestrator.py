@@ -11,8 +11,6 @@ network-touching code and verifies the full execution trace.
 import operator
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from src.llm.orchestrator import (
     AgentState,
     FinancialAdvisorGraph,
