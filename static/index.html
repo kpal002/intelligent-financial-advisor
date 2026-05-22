@@ -183,19 +183,62 @@
     .msg-bot-inner strong { font-weight: 600; }
     .msg-bot-inner hr { border: none; border-top: 1px solid #e8ddd4; margin: 16px 0; }
 
-    /* Typing indicator */
-    .typing {
-      display: flex; gap: 5px; align-items: center; padding: 12px 0;
+    /* Pipeline progress indicator */
+    .pipeline-indicator { padding: 4px 0 8px; }
+    .pipeline-stage {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.88rem; color: #5a4a3a; margin-bottom: 10px;
     }
-    .typing span {
-      width: 8px; height: 8px; border-radius: 50%; background: #c4622d;
+    .pipeline-stage-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: #ede5dc; display: flex; align-items: center;
+      justify-content: center; font-size: 1rem; flex-shrink: 0;
+    }
+    .pipeline-stage-icon.active {
+      background: #c4622d; animation: pulse-bg 1.4s ease-in-out infinite;
+    }
+    .pipeline-stage-label { font-weight: 500; color: #3a2820; }
+    .pipeline-stage-sub { font-size: 0.78rem; color: #9a7a6a; margin-top: 1px; }
+    .pipeline-stage-check { margin-left: auto; color: #4caf50; font-size: 1rem; }
+    .pipeline-steps {
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .pipeline-step {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.82rem; color: #aaa; transition: color 0.3s;
+    }
+    .pipeline-step.done { color: #4caf50; }
+    .pipeline-step.active { color: #c4622d; font-weight: 600; }
+    .pipeline-step-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #ddd; flex-shrink: 0; transition: background 0.3s;
+    }
+    .pipeline-step.done .pipeline-step-dot { background: #4caf50; }
+    .pipeline-step.active .pipeline-step-dot {
+      background: #c4622d; animation: pulse-dot 1s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.5); opacity: 0.7; }
+    }
+    @keyframes pulse-bg {
+      0%, 100% { opacity: 1; } 50% { opacity: 0.7; }
+    }
+    /* Simple thinking indicator for follow-ups */
+    .thinking {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.88rem; color: #9a7a6a; padding: 6px 0;
+    }
+    .thinking-dots { display: flex; gap: 4px; }
+    .thinking-dots span {
+      width: 6px; height: 6px; border-radius: 50%; background: #c4622d;
       animation: bounce 1.2s infinite;
     }
-    .typing span:nth-child(2) { animation-delay: 0.2s; }
-    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
     @keyframes bounce {
       0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-      30% { transform: translateY(-6px); opacity: 1; }
+      30% { transform: translateY(-5px); opacity: 1; }
     }
 
     /* ── Input area ──────────────────────────────────────────── */
@@ -502,17 +545,70 @@
     return div;
   }
 
-  // ── Typing indicator ───────────────────────────────────────
-  function showTyping() {
+  // ── Progress indicator ─────────────────────────────────────
+  const PIPELINE_STAGES = [
+    { label: 'Fetching market data',   sub: 'ARIMA forecasts · yfinance',          icon: '📡' },
+    { label: 'Analysing risk',         sub: 'VaR · CVaR · Sharpe · Markowitz',     icon: '📊' },
+    { label: 'Detecting anomalies',    sub: 'Isolation Forest · momentum signals', icon: '🔍' },
+    { label: 'Synthesising with Claude', sub: 'Generating advisory report',        icon: '🧠' },
+    { label: 'Validating',             sub: 'Confidence checks · sanity review',   icon: '✅' },
+  ];
+  let _stageTimer = null;
+
+  function showTyping(isFollowUp) {
     const msgs = document.getElementById('messages');
     const div  = document.createElement('div');
     div.id = 'typing-indicator';
     div.className = 'msg msg-bot';
-    div.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+
+    if (isFollowUp) {
+      div.innerHTML = `
+        <div class="thinking">
+          <div class="thinking-dots"><span></span><span></span><span></span></div>
+          Thinking…
+        </div>`;
+    } else {
+      // Build pipeline steps HTML
+      const stepsHtml = PIPELINE_STAGES.map((s, i) => `
+        <div class="pipeline-step" id="pstep-${i}">
+          <span class="pipeline-step-dot"></span>
+          <span>${s.icon}&nbsp; ${s.label}</span>
+          <span style="font-size:0.75rem;color:#bbb;margin-left:4px;">${s.sub}</span>
+        </div>`).join('');
+
+      div.innerHTML = `
+        <div class="pipeline-indicator">
+          <div style="font-size:0.78rem;color:#9a7a6a;margin-bottom:8px;font-weight:500;">
+            Running 5-agent pipeline…
+          </div>
+          <div class="pipeline-steps">${stepsHtml}</div>
+        </div>`;
+
+      // Advance stages on a timer (~8 s each to roughly match real pipeline)
+      let current = 0;
+      _setStage(current);
+      _stageTimer = setInterval(() => {
+        current++;
+        if (current < PIPELINE_STAGES.length) _setStage(current);
+      }, 8000);
+    }
+
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
   }
+
+  function _setStage(idx) {
+    PIPELINE_STAGES.forEach((_, i) => {
+      const el = document.getElementById(`pstep-${i}`);
+      if (!el) return;
+      el.className = 'pipeline-step' + (i < idx ? ' done' : i === idx ? ' active' : '');
+    });
+    const msgs = document.getElementById('messages');
+    if (msgs) msgs.scrollTop = msgs.scrollHeight;
+  }
+
   function removeTyping() {
+    if (_stageTimer) { clearInterval(_stageTimer); _stageTimer = null; }
     const el = document.getElementById('typing-indicator');
     if (el) el.remove();
   }
@@ -532,7 +628,7 @@
     ta.value = '';
     ta.style.height = 'auto';
     appendMessage('user', message);
-    showTyping();
+    showTyping(conversationHistory.length > 0);
     busy = true;
     document.getElementById('send-btn').disabled = true;
 
