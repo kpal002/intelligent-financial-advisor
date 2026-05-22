@@ -474,6 +474,43 @@ def synthesize_with_llm(state: AgentState, llm: ChatAnthropic) -> Dict[str, Any]
             for s, w in state["current_allocation"].items()
         )
 
+        # ── Build structured data for the frontend dashboard ─────────────────
+        signals_json = []
+        for sym, rec in recs.items():
+            mkt = market.get(sym, {})
+            ti  = mkt.get("technical_indicators", {})
+            signals_json.append({
+                "symbol":     sym,
+                "action":     rec["action"].upper(),
+                "confidence": round(rec["confidence"] * 100),
+                "forecast":   mkt.get("forecast_30d", 0),
+                "trend":      mkt.get("trend", "neutral"),
+                "rsi":        round(ti.get("RSI", 50), 1),
+            })
+
+        alloc_pct = {
+            s: round(w * 100, 1)
+            for s, w in risk["recommended_allocation"].items()
+        }
+
+        metrics_json = {
+            "sharpe":          round(risk["sharpe_ratio"], 2),
+            "sortino":         round(risk["sortino_ratio"], 2),
+            "var_95":          round(risk["var_95"] * 100, 2),
+            "cvar_95":         round(risk["cvar_95"] * 100, 2),
+            "max_drawdown":    round(risk["max_drawdown"] * 100, 1),
+            "expected_return": round(risk["portfolio_return_expected"] * 100, 1),
+            "volatility":      round(risk["portfolio_volatility"] * 100, 1),
+            "risk_level":      risk["portfolio_risk_level"].upper(),
+        }
+
+        import json as _json
+        dashboard_block = (
+            "<!-- FINLEY_METRICS\n"
+            + _json.dumps({"signals": signals_json, "metrics": metrics_json, "allocation": alloc_pct}, separators=(',', ':'))
+            + "\n-->"
+        )
+
         _system = (
             "You are an expert financial advisor AI. "
             "Three specialized ML agents have analysed this portfolio. "
@@ -507,7 +544,12 @@ Stress tests:
 {chr(10).join(rec_lines)}
 
 ─────────────────────────────────────────────────────────────
-Provide a professional advisory report with EXACTLY these six sections:
+IMPORTANT: Your response must begin with the following data block VERBATIM
+(do not alter it — the UI uses it to render the visual dashboard):
+
+{dashboard_block}
+
+Then provide a professional advisory report with EXACTLY these six sections:
 
 1. EXECUTIVE SUMMARY
    2–3 sentences. Overall recommendation and single most important action.
