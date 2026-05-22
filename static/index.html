@@ -196,6 +196,87 @@
     .msg-bot-inner strong { font-weight: 600; }
     .msg-bot-inner hr { border: none; border-top: 1px solid #e8ddd4; margin: 16px 0; }
 
+    /* ── Visual report dashboard ─────────────────────────────── */
+    .report-dashboard {
+      background: #1c1208; border-radius: 14px; padding: 20px;
+      margin-bottom: 18px; border: 1px solid #3a1f12;
+    }
+    .dash-row {
+      display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .dash-row:last-child { margin-bottom: 0; }
+
+    /* Signal badges */
+    .dash-signal {
+      flex: 1; min-width: 90px; background: #2a1608;
+      border-radius: 10px; padding: 12px 14px;
+      border: 1px solid #3a1f12; text-align: center;
+    }
+    .dash-signal-sym {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+      color: #a07060; text-transform: uppercase; margin-bottom: 5px;
+    }
+    .dash-signal-action {
+      font-size: 1.1rem; font-weight: 800; letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+    .dash-signal-action.buy  { color: #4ade80; }
+    .dash-signal-action.hold { color: #facc15; }
+    .dash-signal-action.sell { color: #f87171; }
+    .dash-signal-conf {
+      font-size: 0.72rem; color: #7a5c4e;
+    }
+    .dash-signal-forecast {
+      font-size: 0.7rem; color: #6a4a3a; margin-top: 3px;
+    }
+    .dash-risk-badge {
+      align-self: center; padding: 8px 16px; border-radius: 8px;
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; white-space: nowrap;
+    }
+    .dash-risk-badge.low    { background: rgba(74,222,128,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+    .dash-risk-badge.medium { background: rgba(250,204,21,0.15);  color: #facc15; border: 1px solid rgba(250,204,21,0.3); }
+    .dash-risk-badge.high   { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+
+    /* Metric cards */
+    .dash-metrics {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px;
+    }
+    .dash-metric {
+      background: #2a1608; border-radius: 8px; padding: 10px 12px;
+      border: 1px solid #3a1f12;
+    }
+    .dash-metric-label {
+      font-size: 0.66rem; color: #7a5c4e; text-transform: uppercase;
+      letter-spacing: 0.08em; margin-bottom: 5px;
+    }
+    .dash-metric-value {
+      font-size: 1.15rem; font-weight: 700;
+    }
+    .dash-metric-value.pos { color: #4ade80; }
+    .dash-metric-value.neg { color: #f87171; }
+    .dash-metric-value.neu { color: #e0d4ca; }
+
+    /* Allocation bars */
+    .dash-alloc { display: flex; flex-direction: column; gap: 8px; }
+    .dash-alloc-row { display: flex; align-items: center; gap: 10px; }
+    .dash-alloc-sym {
+      font-size: 0.72rem; font-weight: 700; color: #a07060;
+      width: 42px; flex-shrink: 0; text-transform: uppercase;
+    }
+    .dash-alloc-bar-wrap {
+      flex: 1; height: 8px; background: #3a1f12; border-radius: 4px; overflow: hidden;
+    }
+    .dash-alloc-bar { height: 100%; border-radius: 4px; }
+    .dash-alloc-pct {
+      font-size: 0.72rem; color: #a07060; width: 36px;
+      text-align: right; flex-shrink: 0;
+    }
+    .dash-section-label {
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #5a3a2a; margin-bottom: 10px;
+    }
+
     /* Pipeline progress indicator */
     .pipeline-indicator { padding: 4px 0 8px; }
     .pipeline-stage {
@@ -570,15 +651,106 @@
     document.getElementById('welcome').classList.add('hidden');
   }
 
+  // ── Parse FINLEY_METRICS block and build a visual dashboard ──
+  function extractDashboard(rawText) {
+    const re = /<!--\s*FINLEY_METRICS\s*([\s\S]*?)\s*-->/;
+    const m  = rawText.match(re);
+    if (!m) return { dashboard: '', rest: rawText };
+
+    let data;
+    try { data = JSON.parse(m[1].trim()); }
+    catch (e) { return { dashboard: '', rest: rawText.replace(re, '') }; }
+
+    const ALLOC_COLORS = ['#c4622d','#4ade80','#facc15','#60a5fa','#f87171','#a78bfa'];
+    const syms = Object.keys(data.allocation || {});
+
+    // ── Signals row ──────────────────────────────────────────────────────────
+    const signalBadges = (data.signals || []).map(s => {
+      const action = (s.action || 'HOLD').toLowerCase();
+      const forecastStr = s.forecast ? `$${Number(s.forecast).toFixed(2)} 30d` : '';
+      return `
+        <div class="dash-signal">
+          <div class="dash-signal-sym">${s.symbol}</div>
+          <div class="dash-signal-action ${action}">${s.action}</div>
+          <div class="dash-signal-conf">${s.confidence}% confidence</div>
+          ${forecastStr ? `<div class="dash-signal-forecast">${forecastStr} · RSI ${s.rsi}</div>` : ''}
+        </div>`;
+    }).join('');
+
+    const rl = (data.metrics?.risk_level || 'MEDIUM').toLowerCase();
+    const riskBadge = `<div class="dash-risk-badge ${rl}">⚡ ${rl.toUpperCase()} RISK</div>`;
+
+    // ── Metric cards ─────────────────────────────────────────────────────────
+    const m2 = data.metrics || {};
+    function metricCard(label, value, isPos, suffix = '') {
+      const cls = value == null ? 'neu' : (isPos ? 'pos' : 'neg');
+      const display = value == null ? '—' : `${Number(value).toFixed(2)}${suffix}`;
+      return `
+        <div class="dash-metric">
+          <div class="dash-metric-label">${label}</div>
+          <div class="dash-metric-value ${cls}">${display}</div>
+        </div>`;
+    }
+    const metricCards = [
+      metricCard('Sharpe Ratio',   m2.sharpe,          m2.sharpe >= 1),
+      metricCard('Sortino Ratio',  m2.sortino,         m2.sortino >= 1),
+      metricCard('VaR 95%',        m2.var_95,          false, '%'),
+      metricCard('CVaR 95%',       m2.cvar_95,         false, '%'),
+      metricCard('Max Drawdown',   m2.max_drawdown,    false, '%'),
+      metricCard('Exp. Return',    m2.expected_return, m2.expected_return > 0, '%'),
+    ].join('');
+
+    // ── Allocation bars ───────────────────────────────────────────────────────
+    const allocRows = syms.map((sym, i) => {
+      const pct = data.allocation[sym] || 0;
+      const color = ALLOC_COLORS[i % ALLOC_COLORS.length];
+      return `
+        <div class="dash-alloc-row">
+          <span class="dash-alloc-sym">${sym}</span>
+          <div class="dash-alloc-bar-wrap">
+            <div class="dash-alloc-bar" style="width:${pct}%;background:${color}"></div>
+          </div>
+          <span class="dash-alloc-pct">${pct}%</span>
+        </div>`;
+    }).join('');
+
+    const dashboard = `
+      <div class="report-dashboard">
+        <div class="dash-row" style="align-items:flex-start">
+          <div style="flex:1">
+            <div class="dash-section-label">Signals · Isolation Forest + Momentum Z-score</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">${signalBadges}</div>
+          </div>
+          <div>${riskBadge}</div>
+        </div>
+        <div class="dash-row">
+          <div style="flex:1">
+            <div class="dash-section-label">Risk Metrics · Markowitz · VaR</div>
+            <div class="dash-metrics">${metricCards}</div>
+          </div>
+        </div>
+        <div class="dash-row">
+          <div style="flex:1">
+            <div class="dash-section-label">Optimal Allocation · Max-Sharpe</div>
+            <div class="dash-alloc">${allocRows}</div>
+          </div>
+        </div>
+      </div>`;
+
+    return { dashboard, rest: rawText.replace(re, '').trim() };
+  }
+
   // ── Append a message bubble ────────────────────────────────
-  function appendMessage(role, html) {
+  function appendMessage(role, rawText) {
     const msgs = document.getElementById('messages');
     const div  = document.createElement('div');
     div.className = `msg msg-${role}`;
     if (role === 'user') {
-      div.innerHTML = `<div class="msg-user">${escapeHtml(html)}</div>`;
+      div.innerHTML = `<div class="msg-user">${escapeHtml(rawText)}</div>`;
     } else {
-      div.innerHTML = `<div class="msg-bot-inner">${html}</div>`;
+      const { dashboard, rest } = extractDashboard(rawText);
+      const mdHtml = marked.parse(rest);
+      div.innerHTML = `${dashboard}<div class="msg-bot-inner">${mdHtml}</div>`;
     }
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
@@ -687,7 +859,7 @@
       conversationHistory.push({ role: 'assistant', content: response });
 
       removeTyping();
-      appendMessage('bot', marked.parse(response));
+      appendMessage('bot', response);
 
       // Update sidebar stats
       analysesCount++;
@@ -698,7 +870,7 @@
 
     } catch (err) {
       removeTyping();
-      appendMessage('bot', marked.parse(`⚠️ **Error:** ${err.message}`));
+      appendMessage('bot', `⚠️ **Error:** ${err.message}`);
     } finally {
       busy = false;
       document.getElementById('send-btn').disabled = false;
