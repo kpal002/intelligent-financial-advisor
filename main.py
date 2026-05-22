@@ -31,7 +31,7 @@ try:
             _advisor_singleton = FinancialAdvisorGraph()
         return _advisor_singleton
 
-    _llm = ChatAnthropic(model="claude-3-5-haiku-20241022", max_tokens=2048)
+    _llm = ChatAnthropic(model="claude-haiku-4-5", max_tokens=2048)
 
     LIVE = True
 except Exception as _e:
