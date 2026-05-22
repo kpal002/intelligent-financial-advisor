@@ -145,6 +145,10 @@
     .w-card-title { font-size: 0.94rem; font-weight: 600; color: #1c1c1c; margin-bottom: 6px; }
     .w-card-desc { font-size: 0.81rem; color: #666; line-height: 1.5; }
     .w-hint { font-size: 0.82rem; color: #bbb; margin-top: 20px; }
+    .w-examples {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      justify-content: center; margin-top: 14px;
+    }
 
     /* ── Messages ────────────────────────────────────────────── */
     #messages {
@@ -308,10 +312,6 @@
     #send-btn:disabled { background: #e0ccc0; cursor: not-allowed; }
 
     /* ── Quick examples ──────────────────────────────────────── */
-    #examples {
-      display: flex; gap: 8px; padding: 10px 16px 10px;
-      flex-wrap: wrap;
-    }
     .ex-btn {
       background: #e8e1d8; border: none; border-radius: 20px;
       color: #3a2820; font-size: 0.82rem; padding: 7px 14px;
@@ -420,7 +420,22 @@
         </div>
       </div>
 
-      <p class="w-hint">or use the quick prompts below ↓</p>
+      <p class="w-hint">or use the quick prompts below</p>
+
+      <div class="w-examples">
+        <button class="ex-btn" onclick="fillInput('Should I rebalance given recent Fed rate hikes?')">
+          Rebalancing advice
+        </button>
+        <button class="ex-btn" onclick="fillInput('What does my Sharpe ratio tell me?')">
+          Explain Sharpe ratio
+        </button>
+        <button class="ex-btn" onclick="fillInput('I need to reduce portfolio risk — where should I start?')">
+          Risk reduction
+        </button>
+        <button class="ex-btn" onclick="fillInput('How does Isolation Forest detect anomalies in my portfolio?')">
+          Anomaly detection
+        </button>
+      </div>
     </section>
 
     <!-- Messages -->
@@ -442,21 +457,6 @@
           <label for="weights-input">Weights % (leave blank for equal weight)</label>
           <input id="weights-input" type="text" placeholder="60, 40  ← or leave blank" />
         </div>
-      </div>
-
-      <div id="examples">
-        <button class="ex-btn" onclick="fillInput('Should I rebalance given recent Fed rate hikes?')">
-          Rebalancing advice
-        </button>
-        <button class="ex-btn" onclick="fillInput('What does my Sharpe ratio tell me?')">
-          Explain Sharpe ratio
-        </button>
-        <button class="ex-btn" onclick="fillInput('I need to reduce portfolio risk — where should I start?')">
-          Risk reduction
-        </button>
-        <button class="ex-btn" onclick="fillInput('How does Isolation Forest detect anomalies in my portfolio?')">
-          Anomaly detection
-        </button>
       </div>
 
       <div id="input-row">
