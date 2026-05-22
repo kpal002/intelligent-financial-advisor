@@ -82,6 +82,15 @@
       transition: border-color 0.15s, color 0.15s;
     }
     .sb-gh:hover { border-color: #7a5c4e; color: #a07060; }
+    .sb-new-session {
+      margin: 0 16px 10px;
+      background: #c4622d; color: white; border: none;
+      border-radius: 7px; padding: 10px 14px; font-size: 0.82rem;
+      font-weight: 600; cursor: pointer; width: calc(100% - 32px);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: inherit; transition: background 0.15s;
+    }
+    .sb-new-session:hover { background: #a8521f; }
     .sb-copy {
       text-align: center; font-size: 0.65rem; color: #4a2a1a; padding: 0 0 14px;
     }
@@ -363,6 +372,9 @@
     <div class="sb-privacy">
       🔒 Progress is saved privately on this device. Finley never collects or stores your identity.
     </div>
+    <button class="sb-new-session" onclick="newSession()">
+      ✦ &nbsp;New Session
+    </button>
     <a class="sb-gh" href="https://github.com/kpal002/intelligent-financial-advisor" target="_blank">
       ⭐ &nbsp;View on GitHub
     </a>
@@ -523,6 +535,34 @@
       e.preventDefault();
       sendMessage();
     }
+  }
+
+  // ── New session ────────────────────────────────────────────
+  function newSession() {
+    // Clear conversation state
+    conversationHistory = [];
+    analysesCount = 0;
+
+    // Clear messages area
+    document.getElementById('messages').innerHTML = '';
+
+    // Stop any in-flight indicator
+    removeTyping();
+    busy = false;
+    document.getElementById('send-btn').disabled = false;
+
+    // Show welcome screen again
+    document.getElementById('welcome').classList.remove('hidden');
+
+    // Reset sidebar stats
+    document.getElementById('analyses-count').textContent = '0';
+    document.getElementById('portfolios-count').textContent = '0';
+    document.getElementById('last-analyzed').textContent = '—';
+
+    // Clear input
+    const ta = document.getElementById('user-input');
+    ta.value = '';
+    ta.style.height = 'auto';
   }
 
   // ── Hide welcome once first message sent ───────────────────
